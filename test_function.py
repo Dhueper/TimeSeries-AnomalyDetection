@@ -47,8 +47,8 @@ def solar_power_sso():
     eta = 0.29# Efficiency
     A = 0.03# m^2
     omega = 0.05# rad/s
-    Nt=10000
-    N_period = 100
+    N_period = 20
+    Nt=5000*N_period
     t=np.linspace(0,N_period*T,Nt)
     Px = np.zeros((4,Nt))# W (4 faces N times)
     Py = np.zeros((4,Nt))# W (4 faces N times)
