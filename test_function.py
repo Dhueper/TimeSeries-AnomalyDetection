@@ -54,7 +54,7 @@ def solar_power_sso():
     Py = np.zeros((4,Nt))# W (4 faces N times)
     P0 = np.zeros(Nt)
     P0 = G*A*f_oc*eta*(1-0.05*t/(3600*24))
-    #X component 
+
     for i in range(0,4):
         Px[i,:] = [max(P0[j]*np.cos(betha)*np.cos(omega*t[j]+(i-1)*np.pi/2.)*np.sin(n*t[j]),0) for j in range(0,len(t))] 
         Py[i,:] = [max(P0[j]*np.sin(betha)*np.cos(omega*t[j]+(i-1)*np.pi/2.),0) for j in range(0,len(t))] 
@@ -69,13 +69,14 @@ def solar_power_sso():
     for i in range(0,4):
         P_t = P_t + Px[i,:] + Py[i,:] 
 
-    #Plots
+    return [t,P_t]  
+
+if __name__ == "__main__":
+    [t, P_t] = solar_power_sso()
+     #Plots
     plt.figure()
     plt.plot(t,P_t)
     plt.xlabel('t')
     plt.ylabel('Pt')
     plt.title('Total power in one orbit') 
     plt.show()
-
-if __name__ == "__main__":
-    solar_power_sso()
