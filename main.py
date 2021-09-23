@@ -20,5 +20,5 @@ plt.ylabel('X(t)')
 plt.title('Original time series') 
 plt.show()
 
-decomposition = ts_analysis.ts_decomposition(df, plot=False)
+decomposition = ts_analysis.ts_decomposition(df, plot=True)
 

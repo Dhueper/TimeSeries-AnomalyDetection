@@ -23,7 +23,7 @@ def ts_decomposition(df,**kwargs):
     else:
         plot = True
 
-    X = np.array(df["X(t)"])
+    X = np.array(df[df.columns[0]])
     t = np.array(df.index)
 
     # Analysis in frequency domain: FFT
@@ -61,7 +61,7 @@ def ts_decomposition(df,**kwargs):
     else:
         period = int(1./(xf_th*(t[1] - t[0])))
 
-    decomposition = seasonal_decompose(df['X(t)'], model="additive", period=period)
+    decomposition = seasonal_decompose(df[df.columns[0]], model="additive", period=period)
 
     if plot:
         plt.figure()
