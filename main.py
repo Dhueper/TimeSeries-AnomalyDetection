@@ -9,7 +9,7 @@ import test_function
 
 #%% Time series definition
 
-[t, X] = test_function.solar_power_sso() 
+[t, X] = test_function.solar_power_sso(1) 
 
 time_series = np.transpose(np.array([t,X]))
 
@@ -27,20 +27,32 @@ plt.ylabel('X(t)')
 plt.title('Original time series') 
 plt.show()
 
-#%% Time series period detection
-sample_rate = 1./(t[1] - t[0])
+#%% FFT
 yf = fft(X)
-xf = fftfreq(len(t), 1./sample_rate)
+xf = fftfreq(len(t),t[1] - t[0])
 
+yf_order = np.flip(np.sort(np.abs(yf)))
+
+yf_argorder = np.flip(np.argsort(np.abs(yf)))
+
+yf2 = np.array([abs(yf[i]) for i in yf_argorder])
+
+print(yf_order)
+print(yf2)
+
+plt.figure()
 plt.plot(xf, np.abs(yf))
+plt.xlabel('f [Hz]')
+plt.ylabel('FF')
+plt.title('FFT time series') 
 plt.show()
 
-print(np.argmax(yf))
-print(sample_rate)
-
 #%% Time series decomposition
+period = int(2*np.pi/(0.05*(t[1] - t[0])))
+periodf = int(1./(np.max(xf)*(t[1] - t[0])))
+print(period/periodf)
 
-decomposition = seasonal_decompose(df['X(t)'], model="additive", period=5000)
+decomposition = seasonal_decompose(df['X(t)'], model="additive", period=periodf)
 
 plt.figure()
 plt.subplot(3,1,1)
@@ -56,3 +68,5 @@ plt.plot(t,decomposition.resid)
 plt.xlabel('t')
 plt.title('Irregular variations') 
 plt.show()
+
+# %%
