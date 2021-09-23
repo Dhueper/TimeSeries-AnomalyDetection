@@ -28,28 +28,28 @@ plt.title('Original time series')
 plt.show()
 
 #%% FFT
-yf = fft(X)
-xf = fftfreq(len(t),t[1] - t[0])
+yf = fft(X)[0:len(X)//2] 
+xf = fftfreq(len(t),t[1] - t[0])[:len(X)//2] 
 
-yf_order = np.flip(np.sort(np.abs(yf)))
+yf_max = np.max(yf)
+yf_order = np.flip(np.argsort(np.abs(yf)))
+threshold = 0.05
 
-yf_argorder = np.flip(np.argsort(np.abs(yf)))
-
-yf2 = np.array([abs(yf[i]) for i in yf_argorder])
-
-print(yf_order)
-print(yf2)
+for i in yf_order:
+    if abs(yf[i]) < threshold*yf_max:
+        xf_th = xf[i]  
+        break
 
 plt.figure()
-plt.plot(xf, np.abs(yf))
+plt.plot(xf, 2/len(X) * np.abs(yf))
 plt.xlabel('f [Hz]')
-plt.ylabel('FF')
+plt.ylabel('FFT')
 plt.title('FFT time series') 
 plt.show()
 
 #%% Time series decomposition
 period = int(2*np.pi/(0.05*(t[1] - t[0])))
-periodf = int(1./(np.max(xf)*(t[1] - t[0])))
+periodf = int(1./(xf_th*(t[1] - t[0])))
 print(period/periodf)
 
 decomposition = seasonal_decompose(df['X(t)'], model="additive", period=periodf)
