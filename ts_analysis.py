@@ -1,6 +1,6 @@
 import warnings
 import numpy as np
-from statsmodels.tsa.seasonal import seasonal_decompose
+from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq
 from matplotlib import pyplot as plt
 
@@ -10,7 +10,8 @@ def ts_decomposition(df,**kwargs):
 
         Intent(in): df(pandas DataFrame), time series;
         kwargs (optional): period(integer), time series period;
-        plot(boolean), plot results, default = True
+        plot(boolean), plot results, default = True;
+        method(string), method used for decomposition, seasonal_decompose (default) or STL
 
         Returns: decomposition(statsmodels class), time series decomposed in .trend, .seasonal and .resid
     """
@@ -35,13 +36,14 @@ def ts_decomposition(df,**kwargs):
     threshold = 0.05
     eps = 1e-5
 
+    #Relevant frequencies index
     for i in range(0,len(X)//2):
         if abs(yf[i]) > eps:
             yf_order.append(i)
     
     yf_order = np.flip(np.array(yf_order))
     
-
+    #Last significant high frequency  
     for i in yf_order:
         if abs(yf[i]) > threshold*yf_max:
             xf_th = xf[i]  
@@ -68,9 +70,18 @@ def ts_decomposition(df,**kwargs):
     else:
         period = int(1./(xf_th*(t[1] - t[0])))
 
-    print("period=", period, ", f=", xf_th)
+    print("period=", period, ", f=", xf_th, " [Hz]")
 
-    decomposition = seasonal_decompose(df[df.columns[0]], model="additive", period=period)
+    if "method" in kwargs:
+        if kwargs['method'] == 'seasonal_decompose':
+            decomposition = seasonal_decompose(df[df.columns[0]], model="additive", period=period)
+        elif kwargs['method'] == 'STL':
+            decomposition = STL(df[df.columns[0]], period=period).fit()
+        else:
+            warnings.warn("Unavailable method, used seasonal_decompose by default.", stacklevel=2)
+            decomposition = seasonal_decompose(df[df.columns[0]], model="additive", period=period)
+    else:
+        decomposition = seasonal_decompose(df[df.columns[0]], model="additive", period=period)
 
     if plot:
         plt.figure()
@@ -86,5 +97,10 @@ def ts_decomposition(df,**kwargs):
         plt.plot(t,decomposition.resid)
         plt.xlabel('t')
         plt.title('Irregular variations') 
+
+        plt.figure()
+        plt.plot(t, X-decomposition.trend-decomposition.seasonal-decomposition.resid)
+        plt.xlabel('t')
+        plt.title('Error: X(t) - T(t) - S(t) - e(t)') 
 
     return decomposition
