@@ -60,10 +60,8 @@ def solar_power_sso(periods):
     P0 = G*A*f_oc*eta*(1-0.05*t/(3600*24))
 
     for i in range(0,4):
-        Px[i,0:int(len(t)/2)] = [max(P0[j]*np.cos(betha)*np.cos(omega*t[j]+(i-1)*np.pi/2.)*np.sin(n*t[j]),0) for j in range(0,int(len(t)/2))] 
-        Px[i,int(len(t)/2):len(t)] = [max(P0[j]*np.cos(betha)*np.cos(omega/2*t[j]+(i-1)*np.pi/2.)*np.sin(n*t[j]),0) for j in range(int(len(t)/2), len(t))] 
-        Py[i,0:int(len(t)/2)] = [max(P0[j]*np.sin(betha)*np.cos(omega*t[j]+(i-1)*np.pi/2.),0) for j in range(0,int(len(t)/2))] 
-        Py[i,int(len(t)/2):len(t)] = [max(P0[j]*np.sin(betha)*np.cos(omega/2*t[j]+(i-1)*np.pi/2.),0) for j in range(int(len(t)/2), len(t))] 
+        Px[i,:] = [max(P0[j]*np.cos(betha)*np.cos(omega*t[j]+(i-1)*np.pi/2.)*np.sin(n*t[j]),0) for j in range(0,len(t))] 
+        Py[i,:] = [max(P0[j]*np.sin(betha)*np.cos(omega*t[j]+(i-1)*np.pi/2.),0) for j in range(0,len(t))] 
 
     for j in range(0,Nt):
         for k in range(0,N_period):
@@ -76,6 +74,12 @@ def solar_power_sso(periods):
         P_t = P_t + Px[i,:] + Py[i,:] 
 
     return [t,P_t]  
+
+
+def sin_function():
+    t = np.linspace(0,100,1000)
+    y = 2*np.sin(2*np.pi*50 * t)
+    return [t,y]  
 
 if __name__ == "__main__":
     [t, P_t] = solar_power_sso(1)

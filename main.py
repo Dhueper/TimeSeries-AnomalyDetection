@@ -7,6 +7,7 @@ import ts_analysis
 
 #%% Time series definition
 [t, X] = test_function.solar_power_sso(1) 
+# [t, X] = test_function.sin_function() 
 
 time_series = np.transpose(np.array([t,X]))
 
