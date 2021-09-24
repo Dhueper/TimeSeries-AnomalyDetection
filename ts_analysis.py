@@ -30,12 +30,20 @@ def ts_decomposition(df,**kwargs):
     yf = fft(X)
     xf = fftfreq(len(t),t[1]-t[0])
 
-    yf_max = np.max(yf)
-    yf_order = np.flip(np.argsort(np.abs(yf[0:len(X)//2])))
+    yf_max = np.max(np.abs(yf))
+    yf_order =[]
     threshold = 0.05
+    eps = 1e-5
+
+    for i in range(0,len(X)//2):
+        if abs(yf[i]) > eps:
+            yf_order.append(i)
+    
+    yf_order = np.flip(np.array(yf_order))
+    
 
     for i in yf_order:
-        if abs(yf[i]) < threshold*yf_max:
+        if abs(yf[i]) > threshold*yf_max:
             xf_th = xf[i]  
             break
 
@@ -45,7 +53,6 @@ def ts_decomposition(df,**kwargs):
         plt.xlabel('f [Hz]')
         plt.ylabel('FFT')
         plt.title('FFT time series') 
-        plt.show()
 
     # Time series decomposition
     if "period" in kwargs:
@@ -60,6 +67,8 @@ def ts_decomposition(df,**kwargs):
             period = int(1./(xf_th*(t[1] - t[0])))
     else:
         period = int(1./(xf_th*(t[1] - t[0])))
+
+    print("period=", period, ", f=", xf_th)
 
     decomposition = seasonal_decompose(df[df.columns[0]], model="additive", period=period)
 
@@ -77,6 +86,5 @@ def ts_decomposition(df,**kwargs):
         plt.plot(t,decomposition.resid)
         plt.xlabel('t')
         plt.title('Irregular variations') 
-        plt.show()
 
     return decomposition

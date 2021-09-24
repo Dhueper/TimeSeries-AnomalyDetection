@@ -78,7 +78,8 @@ def solar_power_sso(periods):
 
 def sin_function():
     t = np.linspace(0,100,1000)
-    y = 2*np.sin(2*np.pi*50 * t)
+    y = 2*np.sin(2*np.pi*50 * t) 
+    # print(len(t)/(50 * (t[1]-t[0])))
     return [t,y]  
 
 if __name__ == "__main__":
