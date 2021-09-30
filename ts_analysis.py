@@ -1,5 +1,5 @@
 import warnings
-import numpy as np
+from numpy import array, flip
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq
 from matplotlib import pyplot as plt
@@ -11,10 +11,11 @@ def ts_decomposition(df,**kwargs):
         Intent(in): df(pandas DataFrame), time series;
         kwargs (optional): period(integer), time series period;
         plot(boolean), plot results, default = True;
-        method(string), method used for decomposition, seasonal_decompose (default) or STL
+        method(string), method used for decomposition, 'seasonal_decompose' (default) or 'STL'
 
         Returns: decomposition(statsmodels class), time series decomposed in .trend, .seasonal and .resid
     """
+
 
     if "plot" in kwargs:
         plot = kwargs["plot"] 
@@ -24,34 +25,34 @@ def ts_decomposition(df,**kwargs):
     else:
         plot = True
 
-    X = np.array(df[df.columns[0]])
-    t = np.array(df.index)
+    X = array(df[df.columns[0]])
+    t = array(df.index)
 
     # Analysis in frequency domain: FFT
-    yf = fft(X)
-    xf = fftfreq(len(t),t[1]-t[0])
+    Xf = fft(X)
+    f = fftfreq(len(t),t[1]-t[0])
 
-    yf_max = np.max(np.abs(yf))
-    yf_order =[]
+    Xf_max = max(abs(Xf))
+    Xf_order =[]
     threshold = 0.05
     eps = 1e-5
 
     #Relevant frequencies index
     for i in range(0,len(X)//2):
-        if abs(yf[i]) > eps:
-            yf_order.append(i)
+        if abs(Xf[i]) > eps:
+            Xf_order.append(i)
     
-    yf_order = np.flip(np.array(yf_order))
+    Xf_order = flip(array(Xf_order))
     
     #Last significant high frequency  
-    for i in yf_order:
-        if abs(yf[i]) > threshold*yf_max:
-            xf_th = xf[i]  
+    for i in Xf_order:
+        if abs(Xf[i]) > threshold*Xf_max:
+            f_th = f[i]  
             break
 
     if plot:
         plt.figure()
-        plt.plot(xf[:len(X)//2], 2/len(X) * np.abs(yf[0:len(X)//2]))
+        plt.plot(f[:len(X)//2], 2/len(X) * abs(Xf[0:len(X)//2]))
         plt.xlabel('f [Hz]')
         plt.ylabel('FFT')
         plt.title('FFT time series') 
@@ -64,13 +65,14 @@ def ts_decomposition(df,**kwargs):
             else:
                 period = int(kwargs["period"])
                 warnings.warn("period argument must be of type integer, it has been rounded by default.", stacklevel=2)
+            print("period=", period)
         except:
             warnings.warn("period argument must be of type integer, it has been automatically computed.", stacklevel=2)
-            period = int(1./(xf_th*(t[1] - t[0])))
+            period = round(1./(f_th*(t[1] - t[0])))# period estimation 
+            print("period=", period, ", f=", f_th, " [Hz]")
     else:
-        period = int(1./(xf_th*(t[1] - t[0])))
-
-    print("period=", period, ", f=", xf_th, " [Hz]")
+        period = round(1./(f_th*(t[1] - t[0])))# period estimation 
+        print("period=", period, ", f=", f_th, " [Hz]")
 
     if "method" in kwargs:
         if kwargs['method'] == 'seasonal_decompose':

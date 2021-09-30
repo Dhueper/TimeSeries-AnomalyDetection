@@ -1,4 +1,4 @@
-import numpy as np
+from numpy import array, transpose, zeros
 import pandas as pd
 from matplotlib import pyplot as plt
 # from tsfresh import extract_features
@@ -7,11 +7,12 @@ import test_function
 import ts_analysis
 
 #%% Time series definition
-[t, X] = test_function.solar_power_sso(1) 
-# [t, X] = test_function.sin_function() 
+# [t, X] = test_function.solar_power_sso(1) 
+[t, X] = test_function.sin_function() 
+# [t, X] = test_function.square_function() 
 
-id_column = np.zeros(len(t))
-time_series = np.transpose(np.array([t,X,id_column]))
+id_column = zeros(len(t))
+time_series = transpose(array([t,X,id_column]))
 
 df = pd.DataFrame(time_series, columns=["time", "X(t)", "id"]) 
 
