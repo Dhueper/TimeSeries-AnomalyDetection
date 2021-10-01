@@ -1,4 +1,4 @@
-from numpy import pi, arccos, arcsin, sin, cos, sqrt, linspace, zeros, array
+from numpy import pi, arccos, arcsin, sin, cos, sqrt, linspace, zeros, array, random
 from matplotlib import pyplot as plt 
 
 def solar_power_sso(periods):
@@ -81,7 +81,8 @@ def sin_function():
     # y = zeros(len(t))
     # for i in range(0,len(t)):
     #     y[i] = 2*sin(2*pi*50 * t[i]) 
-    y = 2*sin(2*pi*10 * t) 
+    e = 0.2*random.normal(0,1,len(t))
+    y = 2*sin(2*pi*10 * t) + e
     # print(len(t)/(50 * (t[1]-t[0])))
     return [t,y]  
 
@@ -95,6 +96,7 @@ def square_function():
         else:
             y[2*i] = -1 
             y[2*i+1] = -1 
+
     return [t,y] 
 
 if __name__ == "__main__":

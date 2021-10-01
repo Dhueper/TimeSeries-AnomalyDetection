@@ -11,6 +11,13 @@ import ts_analysis
 # [t, X] = test_function.sin_function() 
 # [t, X] = test_function.square_function() 
 
+#Original time series plot
+plt.figure()
+plt.plot(t,X)
+plt.xlabel('t')
+plt.ylabel('X(t)')
+plt.title('Original time series')
+
 id_column = zeros(len(t))
 time_series = transpose(array([t,X,id_column]))
 
@@ -20,23 +27,11 @@ df = pd.DataFrame(time_series, columns=["time", "X(t)", "id"])
 # features = extract_features(df, column_id='id', column_sort='time')
 # print(features)
 
-df.set_index("time", inplace=True)
-
-plt.figure()
-plt.plot(t,X)
-plt.xlabel('t')
-plt.ylabel('X(t)')
-plt.title('Original time series') 
+df.set_index("time", inplace=True) 
 
 #Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose' and 'mean_value
-decomposition = ts_analysis.ts_decomposition(df, plot=False, method='mean_value')
-decomposition2 = ts_analysis.ts_decomposition(df, plot=False, method='seasonal_decompose')
+decomposition = ts_analysis.ts_decomposition(df, plot=True, method='STL', noise_filter=True)
 
-plt.figure()
-plt.plot(t, decomposition.trend - decomposition2.trend)
-plt.xlabel('t')
-plt.ylabel('X(t)')
-plt.title('Mean value trend - seasonal decompose trend') 
 plt.show()
 
 

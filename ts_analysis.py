@@ -11,7 +11,8 @@ def ts_decomposition(df,**kwargs):
         Intent(in): df(pandas DataFrame), time series;
         kwargs (optional): period(integer), time series period;
         plot(boolean), plot results, default = True;
-        method(string), method used for decomposition, 'seasonal_decompose' (default) or 'STL'
+        method(string), method used for decomposition, 'seasonal_decompose' (default) or 'STL';
+        noise_filter(boolean), apply noise reduction through mean value decomposition, default=False.
 
         Returns: decomposition(statsmodels class), time series decomposed in .trend, .seasonal and .resid
     """
@@ -27,6 +28,13 @@ def ts_decomposition(df,**kwargs):
 
     X = array(df[df.columns[0]])
     t = array(df.index)
+
+    #Noise reduction
+    if "noise_filter" in kwargs:
+        if kwargs["noise_filter"]:
+            # noiseless = Mean_value_decomposition(X,max(round(len(X)/100),1))
+            noiseless = Mean_value_decomposition(X,10)
+            X[:] = noiseless.trend[:] + noiseless.seasonal[:] 
 
     # Analysis in frequency domain: FFT
     Xf = fft(X)
@@ -76,20 +84,20 @@ def ts_decomposition(df,**kwargs):
 
     if "method" in kwargs:
         if kwargs['method'] == 'seasonal_decompose':
-            decomposition = seasonal_decompose(df[df.columns[0]], model="additive", period=period)
+            decomposition = seasonal_decompose(X, model="additive", period=period)
         elif kwargs['method'] == 'STL':
-            decomposition = STL(df[df.columns[0]], period=period).fit()
+            decomposition = STL(X, period=period).fit()
         elif kwargs['method'] == 'mean_value':
-            decomposition = Mean_value_decomposition(df[df.columns[0]], 1000)
+            decomposition = Mean_value_decomposition(X, 1000)
         else:
             warnings.warn("Unavailable method, used seasonal_decompose by default.", stacklevel=2)
-            decomposition = seasonal_decompose(df[df.columns[0]], model="additive", period=period)
+            decomposition = seasonal_decompose(X, model="additive", period=period)
     else:
-        decomposition = seasonal_decompose(df[df.columns[0]], model="additive", period=period)
+        decomposition = seasonal_decompose(X, model="additive", period=period)
 
     if plot:
         plt.figure()
-        plt.subplot(3,1,1)
+        plt.subplot(4,1,1)
         plt.plot(t,decomposition.trend)
         plt.xlabel('t')
         plt.title('Trend component') 
@@ -102,26 +110,25 @@ def ts_decomposition(df,**kwargs):
         plt.xlabel('t')
         plt.title('Irregular variations') 
 
-        plt.figure()
-        plt.plot(t, X-decomposition.trend-decomposition.seasonal-decomposition.resid)
-        plt.xlabel('t')
-        plt.title('Error: X(t) - T(t) - S(t) - e(t)') 
+        if "noise_filter" in kwargs and kwargs["noise_filter"] == True :
+            plt.plot(t,noiseless.resid, linewidth=1)
+            plt.title('Irregular variations + noise') 
 
     return decomposition
 
 
 class Mean_value_decomposition():
-    """Time series decomposition through n recurrent mean value filters. """
-
-    def __init__(self, X, n):
-        """Initialization of the decomposition procedure.
-
-            Intent(in): self (object);
+    """Time series decomposition through n recurrent mean value filters.
+    
+            Intent(in): 
             X (numpy.array), time series;
             n (integer), times the recursive filter is applied.
 
             Attributes: trend, seasonal and resid.
-        """
+         """
+
+    def __init__(self, X, n):
+
         self.trend = zeros(len(X))
         self.seasonal = zeros(len(X))
         self.resid = zeros(len(X))
@@ -138,7 +145,6 @@ class Mean_value_decomposition():
     def mean_value_filter(self, X):
         """Time series filter based on the mean value theorem and the trapezoid integration rule.
 
-            Intent(in): self (object);
             X (numpy.array), time series.
 
             Returns: Y(numpy.array), filtered time series.
