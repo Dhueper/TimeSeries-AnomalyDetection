@@ -1,5 +1,5 @@
 import warnings
-from numpy import array, flip
+from numpy import array, flip, zeros
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq
 from matplotlib import pyplot as plt
@@ -79,6 +79,8 @@ def ts_decomposition(df,**kwargs):
             decomposition = seasonal_decompose(df[df.columns[0]], model="additive", period=period)
         elif kwargs['method'] == 'STL':
             decomposition = STL(df[df.columns[0]], period=period).fit()
+        elif kwargs['method'] == 'mean_value':
+            decomposition = Mean_value_decomposition(df[df.columns[0]], 1000)
         else:
             warnings.warn("Unavailable method, used seasonal_decompose by default.", stacklevel=2)
             decomposition = seasonal_decompose(df[df.columns[0]], model="additive", period=period)
@@ -106,3 +108,51 @@ def ts_decomposition(df,**kwargs):
         plt.title('Error: X(t) - T(t) - S(t) - e(t)') 
 
     return decomposition
+
+
+class Mean_value_decomposition():
+    """Time series decomposition through n recurrent mean value filters. """
+
+    def __init__(self, X, n):
+        """Initialization of the decomposition procedure.
+
+            Intent(in): self (object);
+            X (numpy.array), time series;
+            n (integer), times the recursive filter is applied.
+
+            Attributes: trend, seasonal and resid.
+        """
+        self.trend = zeros(len(X))
+        self.seasonal = zeros(len(X))
+        self.resid = zeros(len(X))
+
+        self.trend[:] = X[:]  
+
+        for _ in range(0,n):
+            self.trend = self.mean_value_filter(self.trend)
+
+        self.resid[:] = X[:] - self.trend[:]   
+
+
+
+    def mean_value_filter(self, X):
+        """Time series filter based on the mean value theorem and the trapezoid integration rule.
+
+            Intent(in): self (object);
+            X (numpy.array), time series.
+
+            Returns: Y(numpy.array), filtered time series.
+        """
+
+        M = len(X)
+        Y = zeros(M)
+        # Y[0] = X[0]
+        # Y[M-1] = X[M-1]  
+
+        for i in range(1,M-1):
+            Y[i] = (X[i-1] + 2*X[i] + X[i+1])/4. 
+
+        Y[0] = Y[1] 
+        Y[M-1] = Y[M-2] 
+        
+        return Y

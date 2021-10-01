@@ -7,8 +7,8 @@ import test_function
 import ts_analysis
 
 #%% Time series definition
-# [t, X] = test_function.solar_power_sso(1) 
-[t, X] = test_function.sin_function() 
+[t, X] = test_function.solar_power_sso(1) 
+# [t, X] = test_function.sin_function() 
 # [t, X] = test_function.square_function() 
 
 id_column = zeros(len(t))
@@ -28,7 +28,15 @@ plt.xlabel('t')
 plt.ylabel('X(t)')
 plt.title('Original time series') 
 
-#Decomposition of the time series. Available methods: 'STL' and 'seasonal_decompose' 
-decomposition = ts_analysis.ts_decomposition(df, plot=True, method='STL')
+#Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose' and 'mean_value
+decomposition = ts_analysis.ts_decomposition(df, plot=False, method='mean_value')
+decomposition2 = ts_analysis.ts_decomposition(df, plot=False, method='seasonal_decompose')
+
+plt.figure()
+plt.plot(t, decomposition.trend - decomposition2.trend)
+plt.xlabel('t')
+plt.ylabel('X(t)')
+plt.title('Mean value trend - seasonal decompose trend') 
 plt.show()
+
 
