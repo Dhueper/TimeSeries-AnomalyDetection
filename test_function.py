@@ -73,6 +73,8 @@ def solar_power_sso(periods):
     for i in range(0,4):
         P_t = P_t + Px[i,:] + Py[i,:] 
 
+    P_t = P_t + 0.2*random.normal(0,1,len(t))
+
     return [t,P_t]  
 
 

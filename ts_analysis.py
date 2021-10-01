@@ -29,13 +29,6 @@ def ts_decomposition(df,**kwargs):
     X = array(df[df.columns[0]])
     t = array(df.index)
 
-    #Noise reduction
-    if "noise_filter" in kwargs:
-        if kwargs["noise_filter"]:
-            # noiseless = Mean_value_decomposition(X,max(round(len(X)/100),1))
-            noiseless = Mean_value_decomposition(X,10)
-            X[:] = noiseless.trend[:] + noiseless.seasonal[:] 
-
     # Analysis in frequency domain: FFT
     Xf = fft(X)
     f = fftfreq(len(t),t[1]-t[0])
@@ -65,7 +58,6 @@ def ts_decomposition(df,**kwargs):
         plt.ylabel('FFT')
         plt.title('FFT time series') 
 
-    # Time series decomposition
     if "period" in kwargs:
         try:
             if type(kwargs["period"]) == int:
@@ -81,6 +73,27 @@ def ts_decomposition(df,**kwargs):
     else:
         period = round(1./(f_th*(t[1] - t[0])))# period estimation 
         print("period=", period, ", f=", f_th, " [Hz]")
+
+
+    #Noise reduction
+    if "noise_filter" in kwargs:
+        if kwargs["noise_filter"]:
+            noise_filter = True
+            n_noise_filter = max(round(period/10),1) #Times the recursive noise filter is applied 
+            noiseless = Mean_value_decomposition(X, n_noise_filter)
+            X[:] = noiseless.trend[:] + noiseless.seasonal[:] 
+        else:
+            noise_filter = False
+    else:
+        noise_filter = False
+
+
+    if noise_filter and period < 8:
+        warnings.warn("the seasonal period is very short and the noise filter may significantly modify the result."+
+         " It is recommended to switch 'noise_filter' to False.", stacklevel=2)
+
+         
+    # Time series decomposition
 
     if "method" in kwargs:
         if kwargs['method'] == 'seasonal_decompose':
@@ -110,7 +123,7 @@ def ts_decomposition(df,**kwargs):
         plt.xlabel('t')
         plt.title('Irregular variations') 
 
-        if "noise_filter" in kwargs and kwargs["noise_filter"] == True :
+        if noise_filter:
             plt.plot(t,noiseless.resid, linewidth=1)
             plt.title('Irregular variations + noise') 
 
