@@ -1,7 +1,7 @@
 import warnings
 from numpy import array, flip, zeros
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
-from scipy.fft import fft, fftfreq
+from scipy.fft import fft, fftfreq, ifft
 from matplotlib import pyplot as plt
 
 def ts_decomposition(df,**kwargs):
@@ -30,30 +30,11 @@ def ts_decomposition(df,**kwargs):
     t = array(df.index)
 
     # Analysis in frequency domain: FFT
-    Xf = fft(X)
-    f = fftfreq(len(t),t[1]-t[0])
-
-    Xf_max = max(abs(Xf))
-    Xf_order =[]
-    threshold = 0.05
-    eps = 1e-5
-
-    #Relevant frequencies index
-    for i in range(0,len(X)//2):
-        if abs(Xf[i]) > eps:
-            Xf_order.append(i)
-    
-    Xf_order = flip(array(Xf_order))
-    
-    #Last significant high frequency  
-    for i in Xf_order:
-        if abs(Xf[i]) > threshold*Xf_max:
-            f_th = f[i]  
-            break
+    X_FFT = Fourier(t,X)
 
     if plot:
         plt.figure()
-        plt.plot(f[:len(X)//2], 2/len(X) * abs(Xf[0:len(X)//2]))
+        plt.plot(X_FFT.f[:len(X)//2], 2/len(X) * abs(X_FFT.Xf[0:len(X)//2]))
         plt.xlabel('f [Hz]')
         plt.ylabel('FFT')
         plt.title('FFT time series') 
@@ -68,11 +49,11 @@ def ts_decomposition(df,**kwargs):
             print("period=", period)
         except:
             warnings.warn("period argument must be of type integer, it has been automatically computed.", stacklevel=2)
-            period = round(1./(f_th*(t[1] - t[0])))# period estimation 
-            print("period=", period, ", f=", f_th, " [Hz]")
+            period = round(1./(X_FFT.f_th*(t[1] - t[0])))# period estimation 
+            print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
     else:
-        period = round(1./(f_th*(t[1] - t[0])))# period estimation 
-        print("period=", period, ", f=", f_th, " [Hz]")
+        period = round(1./(X_FFT.f_th*(t[1] - t[0])))# period estimation 
+        print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
 
 
     #Noise reduction
@@ -101,7 +82,7 @@ def ts_decomposition(df,**kwargs):
         elif kwargs['method'] == 'STL':
             decomposition = STL(X, period=period).fit()
         elif kwargs['method'] == 'mean_value':
-            decomposition = Mean_value_decomposition(X, 1000)
+            decomposition = Mean_value_decomposition( X, max(int(len(X)/2),100*period))
         else:
             warnings.warn("Unavailable method, used seasonal_decompose by default.", stacklevel=2)
             decomposition = seasonal_decompose(X, model="additive", period=period)
@@ -130,6 +111,37 @@ def ts_decomposition(df,**kwargs):
     return decomposition
 
 
+class Fourier():
+    """Frequency domain analysis through FFT.
+    
+            Intent(in): 
+            t (numpy.array), timestamps;
+            X (numpy.array), time series.
+
+            Attributes: Xf (FFT), f (frequencies), Xf_max (max(Xf)) and f_th (threshold frequency).
+         """
+    def __init__(self,t,X):
+        self.Xf = fft(X)
+        self.f = fftfreq(len(t),t[1]-t[0])
+
+        self.Xf_max = max(abs(self.Xf))
+        Xf_order =[]
+        threshold = 0.05
+        eps = 1e-5
+
+        #Relevant frequencies index
+        for i in range(0,len(X)//2):
+            if abs(self.Xf[i]) > eps:
+                Xf_order.append(i)
+        
+        Xf_order = flip(array(Xf_order))
+        
+        #Last significant high frequency  
+        for i in Xf_order:
+            if abs(self.Xf[i]) > threshold*self.Xf_max:
+                self.f_th = self.f[i]  
+                break
+
 class Mean_value_decomposition():
     """Time series decomposition through n recurrent mean value filters.
     
@@ -141,18 +153,32 @@ class Mean_value_decomposition():
          """
 
     def __init__(self, X, n):
+        self.M = len(X)
+        self.trend = zeros(self.M)
+        self.seasonal = zeros(self.M)
+        self.resid = zeros(self.M)
 
-        self.trend = zeros(len(X))
-        self.seasonal = zeros(len(X))
-        self.resid = zeros(len(X))
+        # seasonal_f = zeros(self.M)
+        # trend_f = zeros(self.M)
+        # for i in range(0,self.M):
+        #     if abs(X_FFT.f[i]) > X_FFT.f_th*1.01: #Frequencies higher than threshold 
+        #         seasonal_f[i] = 0
+        #     elif abs(round(X_FFT.f[i]*(t[1] - t[0]))) > 4./self.M: #Frequencies lower than threshold 
+        #         trend_f[i] = X_FFT.Xf[i] 
+        #     elif X_FFT.Xf[i] < X_FFT.Xf_max*0.025: #Not significant frequencies  
+        #         seasonal_f[i] = 0
+        #     else:
+        #         seasonal_f[i] = X_FFT.Xf[i] 
+
+        # self.seasonal = ifft(seasonal_f).real
+        # self.trend = ifft(trend_f).real
 
         self.trend[:] = X[:]  
 
         for _ in range(0,n):
-            self.trend = self.mean_value_filter(self.trend)
+            self.trend = self.quadratic_mean_value_filter(self.trend)
 
-        self.resid[:] = X[:] - self.trend[:]   
-
+        self.resid[:] = X[:] - self.trend[:] - self.seasonal 
 
 
     def mean_value_filter(self, X):
@@ -163,15 +189,36 @@ class Mean_value_decomposition():
             Returns: Y(numpy.array), filtered time series.
         """
 
-        M = len(X)
+        M = self.M
+        Y = zeros(M)
+        # Y[0] = X[0]  
+        # Y[M-1] = X[M-1] 
+
+        for i in range(1,M-1):
+            Y[i] = (X[i-1] + 2*X[i] + X[i+1])/4. 
+
+        Y[0] = (Y[1] + X[0])/2. 
+        Y[M-1] = (Y[M-2] + X[M-1])/2.  
+        
+        return Y
+
+    def quadratic_mean_value_filter(self, X):
+        """Time series filter based on the mean value theorem and the simpson (quadratic) integration rule.
+
+            X (numpy.array), time series.
+
+            Returns: Y(numpy.array), filtered time series.
+        """
+
+        M = self.M
         Y = zeros(M)
         # Y[0] = X[0]
         # Y[M-1] = X[M-1]  
 
         for i in range(1,M-1):
-            Y[i] = (X[i-1] + 2*X[i] + X[i+1])/4. 
+            Y[i] = (X[i-1] + 4*X[i] + X[i+1])/6. 
 
-        Y[0] = Y[1] 
-        Y[M-1] = Y[M-2] 
+        Y[0] = (Y[1] + X[0])/2. 
+        Y[M-1] = (Y[M-2] + X[M-1])/2.
         
         return Y
