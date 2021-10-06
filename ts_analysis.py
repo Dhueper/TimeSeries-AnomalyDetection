@@ -62,7 +62,7 @@ def ts_decomposition(df,**kwargs):
             noise_filter = True
             n_noise_filter = max(round(period/10),1) #Times the recursive noise filter is applied 
             noiseless = Mean_value_decomposition(X, n_noise_filter)
-            X[:] = noiseless.trend[:] + noiseless.seasonal[:] 
+            X[:] = noiseless.trend[:] + noiseless.seasonal[:]   
         else:
             noise_filter = False
     else:
@@ -82,7 +82,8 @@ def ts_decomposition(df,**kwargs):
         elif kwargs['method'] == 'STL':
             decomposition = STL(X, period=period).fit()
         elif kwargs['method'] == 'mean_value':
-            decomposition = Mean_value_decomposition( X, max(int(len(X)/2),100*period))
+            # decomposition = Mean_value_decomposition( X, max(int(len(X)/2),100*period))
+            decomposition = Mean_value_decomposition( X, int(40*X_FFT.Xf_th*period))
         else:
             warnings.warn("Unavailable method, used seasonal_decompose by default.", stacklevel=2)
             decomposition = seasonal_decompose(X, model="additive", period=period)
@@ -140,6 +141,7 @@ class Fourier():
         for i in Xf_order:
             if abs(self.Xf[i]) > threshold*self.Xf_max:
                 self.f_th = self.f[i]  
+                self.Xf_th = 2/len(X) * abs(self.Xf[i])
                 break
 
 class Mean_value_decomposition():
@@ -158,6 +160,39 @@ class Mean_value_decomposition():
         self.seasonal = zeros(self.M)
         self.resid = zeros(self.M)
 
+        self.trend[:] = X[:]  
+
+        for _ in range(0,n):
+            self.trend = self.quadratic_mean_value_filter(self.trend) 
+
+        if n >= 100:
+            self.seasonal[:] = X[:] - self.trend[:]
+            for _ in range(0,3):
+                self.seasonal = self.quadratic_mean_value_filter(self.seasonal)
+
+            seasonal_f = fft(self.seasonal)
+            seasonal_fmax = max(abs(seasonal_f))
+
+            for i in range(0,self.M):
+                if abs(seasonal_f[i]) < seasonal_fmax * 0.01:
+                    seasonal_f[i] = 0
+
+            self.seasonal = ifft(seasonal_f).real
+
+
+            self.resid[:] = X[:] - self.trend[:] - self.seasonal[:] 
+            for _ in range(0,3):
+                self.resid = self.quadratic_mean_value_filter(self.resid)
+
+            resid_f = fft(self.resid)
+            resid_fmax = max(abs(resid_f))
+
+            for i in range(0,self.M):
+                if abs(resid_f[i]) < resid_fmax * 0.01:
+                    resid_f[i] = 0
+
+            self.seasonal = self.seasonal + ifft(resid_f).real
+
         # seasonal_f = zeros(self.M)
         # trend_f = zeros(self.M)
         # for i in range(0,self.M):
@@ -173,10 +208,12 @@ class Mean_value_decomposition():
         # self.seasonal = ifft(seasonal_f).real
         # self.trend = ifft(trend_f).real
 
-        self.trend[:] = X[:]  
-
-        for _ in range(0,n):
-            self.trend = self.quadratic_mean_value_filter(self.trend)
+        
+        
+        # if n >=100:
+        #     self.seasonal[:] = X[:] - self.trend[:] 
+        #     for _ in range(0,int(n/200)):
+        #         self.seasonal = self.mean_value_filter(self.seasonal)
 
         self.resid[:] = X[:] - self.trend[:] - self.seasonal 
 

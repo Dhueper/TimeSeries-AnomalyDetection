@@ -73,7 +73,7 @@ def solar_power_sso(periods):
     for i in range(0,4):
         P_t = P_t + Px[i,:] + Py[i,:] 
 
-    P_t = P_t + 0.2*random.normal(0,1,len(t))
+    # P_t = P_t + 0.2*random.normal(0,1,len(t))
 
     return [t,P_t]  
 
@@ -84,7 +84,7 @@ def sin_function():
     # for i in range(0,len(t)):
     #     y[i] = 2*sin(2*pi*50 * t[i]) 
     e = 0.2*random.normal(0,1,len(t))
-    y = 2*sin(2*pi*10 * t) + e
+    y = 2*sin(2*pi*10 * t) 
     # print(len(t)/(50 * (t[1]-t[0])))
     return [t,y]  
 
