@@ -161,7 +161,8 @@ class Mean_value_decomposition():
     def __init__(self, X, n, period, t):
         self.M = len(X)
         self.t = t
-        self.poly_deg = 2
+        self.poly_deg = 1
+        self.period = period
         self.trend = zeros(self.M)
         self.seasonal = zeros(self.M)
         self.resid = zeros(self.M)
@@ -242,13 +243,12 @@ class Mean_value_decomposition():
         """
 
         Y = zeros(self.M)
-
         #Extrapolate time series
         # p_0 = poly1d(polyfit(self.t[0:self.poly_deg+1], X[0:self.poly_deg+1],self.poly_deg))
         # p_f = poly1d(polyfit(self.t[self.M-self.poly_deg-1:self.M], X[self.M-self.poly_deg-1:self.M],self.poly_deg))
 
-        p_0 = interpolate.interp1d(self.t[0:self.poly_deg+1], X[0:self.poly_deg+1], fill_value="extrapolate")
-        p_f = interpolate.interp1d(self.t[self.M-self.poly_deg-1:self.M], X[self.M-self.poly_deg-1:self.M], fill_value="extrapolate")
+        p_0 = interpolate.interp1d(self.t[0:self.poly_deg+1], X[0:self.poly_deg+1], kind="linear", fill_value="extrapolate")
+        p_f = interpolate.interp1d(self.t[self.M-self.poly_deg-1:self.M], X[self.M-self.poly_deg-1:self.M], kind="linear", fill_value="extrapolate")
 
         Y[0] = (p_0(self.t[0]-self.t[1]) + 4*X[0] + X[1])/6.
         Y[self.M-1] = (p_f(2*self.t[self.M-1]-self.t[self.M-2]) + 4*X[self.M-1] + X[self.M-2])/6.
