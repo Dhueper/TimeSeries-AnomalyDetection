@@ -1,7 +1,8 @@
 import warnings
-from numpy import array, flip, zeros
+from numpy import array, flip, zeros, poly1d, polyfit
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq, ifft
+from scipy import interpolate
 from matplotlib import pyplot as plt
 
 def ts_decomposition(df,**kwargs):
@@ -61,7 +62,7 @@ def ts_decomposition(df,**kwargs):
         if kwargs["noise_filter"]:
             noise_filter = True
             n_noise_filter = max(round(period/10),1) #Times the recursive noise filter is applied 
-            noiseless = Mean_value_decomposition(X, n_noise_filter, period)
+            noiseless = Mean_value_decomposition(X, n_noise_filter, period, t)
             X[:] = noiseless.trend[:] + noiseless.seasonal[:]   
         else:
             noise_filter = False
@@ -83,7 +84,10 @@ def ts_decomposition(df,**kwargs):
             decomposition = STL(X, period=period).fit()
         elif kwargs['method'] == 'mean_value':
             # decomposition = Mean_value_decomposition( X, max(int(len(X)/2),100*period))
-            decomposition = Mean_value_decomposition( X, int(40*X_FFT.Xf_th*period), period)
+            # n_decom = int(50*X_FFT.Xf_th*period)
+            n_decom = int(100*period)
+            print(n_decom)
+            decomposition = Mean_value_decomposition( X, n_decom, period, t)
         else:
             warnings.warn("Unavailable method, used seasonal_decompose by default.", stacklevel=2)
             decomposition = seasonal_decompose(X, model="additive", period=period)
@@ -154,8 +158,10 @@ class Mean_value_decomposition():
             Attributes: trend, seasonal and resid.
          """
 
-    def __init__(self, X, n, period):
+    def __init__(self, X, n, period, t):
         self.M = len(X)
+        self.t = t
+        self.poly_deg = 2
         self.trend = zeros(self.M)
         self.seasonal = zeros(self.M)
         self.resid = zeros(self.M)
@@ -174,7 +180,7 @@ class Mean_value_decomposition():
 
             seasonal_f = fft(self.seasonal)
             seasonal_fmax = max(abs(seasonal_f))
-            seasonal_th = 0.01
+            seasonal_th = 0.02
 
             for i in range(0,len(seasonal_f)):
                 if abs(seasonal_f[i]) < seasonal_fmax * seasonal_th:
@@ -235,15 +241,22 @@ class Mean_value_decomposition():
             Returns: Y(numpy.array), filtered time series.
         """
 
-        M = self.M
-        Y = zeros(M)
-        # Y[0] = X[0]
-        # Y[M-1] = X[M-1]  
+        Y = zeros(self.M)
 
-        for i in range(1,M-1):
+        #Extrapolate time series
+        # p_0 = poly1d(polyfit(self.t[0:self.poly_deg+1], X[0:self.poly_deg+1],self.poly_deg))
+        # p_f = poly1d(polyfit(self.t[self.M-self.poly_deg-1:self.M], X[self.M-self.poly_deg-1:self.M],self.poly_deg))
+
+        p_0 = interpolate.interp1d(self.t[0:self.poly_deg+1], X[0:self.poly_deg+1], fill_value="extrapolate")
+        p_f = interpolate.interp1d(self.t[self.M-self.poly_deg-1:self.M], X[self.M-self.poly_deg-1:self.M], fill_value="extrapolate")
+
+        Y[0] = (p_0(self.t[0]-self.t[1]) + 4*X[0] + X[1])/6.
+        Y[self.M-1] = (p_f(2*self.t[self.M-1]-self.t[self.M-2]) + 4*X[self.M-1] + X[self.M-2])/6.
+
+        for i in range(1,self.M-1):
             Y[i] = (X[i-1] + 4*X[i] + X[i+1])/6. 
 
-        Y[0] = (Y[1] + X[0])/2. 
-        Y[M-1] = (Y[M-2] + X[M-1])/2.
+        # Y[0] = (Y[1] + X[0])/2. 
+        # Y[self.M-1] = (Y[self.M-2] + X[self.M-1])/2.
         
         return Y
