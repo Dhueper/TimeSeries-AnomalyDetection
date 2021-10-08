@@ -7,9 +7,14 @@ import test_function
 import ts_analysis
 
 #%% Time series definition
-[t, X] = test_function.solar_power_sso(1) 
-# [t, X] = test_function.sin_function() 
+# [t, X] = test_function.solar_power_sso(1) 
+[t, X] = test_function.sin_function() 
 # [t, X] = test_function.square_function() 
+# [t, X] = test_function.c() 
+
+# decomposition = ts_analysis.Mean_value_decomposition( X, 1000,100, t)
+
+# X = decomposition.trend
 
 #Original time series plot
 plt.figure()
@@ -29,7 +34,7 @@ df = pd.DataFrame(time_series, columns=["time", "X(t)", "id"])
 
 df.set_index("time", inplace=True) 
 
-#Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose' and 'mean_value
+#Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose' and 'mean_value'
 decomposition = ts_analysis.ts_decomposition(df, plot=True, method='mean_value', noise_filter=False)
 
 plt.show()

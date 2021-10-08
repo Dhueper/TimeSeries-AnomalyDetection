@@ -62,7 +62,7 @@ def ts_decomposition(df,**kwargs):
         if kwargs["noise_filter"]:
             noise_filter = True
             n_noise_filter = max(round(period/10),1) #Times the recursive noise filter is applied 
-            noiseless = Mean_value_decomposition(X, n_noise_filter, period, t)
+            noiseless = Mean_value_decomposition(X, n_noise_filter, period, t, X_FFT)
             X[:] = noiseless.trend[:] + noiseless.seasonal[:]   
         else:
             noise_filter = False
@@ -86,8 +86,7 @@ def ts_decomposition(df,**kwargs):
             # decomposition = Mean_value_decomposition( X, max(int(len(X)/2),100*period))
             # n_decom = int(50*X_FFT.Xf_th*period)
             n_decom = int(100*period)
-            print(n_decom)
-            decomposition = Mean_value_decomposition( X, n_decom, period, t)
+            decomposition = Mean_value_decomposition( X, n_decom, period, t, X_FFT)
         else:
             warnings.warn("Unavailable method, used seasonal_decompose by default.", stacklevel=2)
             decomposition = seasonal_decompose(X, model="additive", period=period)
@@ -158,7 +157,7 @@ class Mean_value_decomposition():
             Attributes: trend, seasonal and resid.
          """
 
-    def __init__(self, X, n, period, t):
+    def __init__(self, X, n, period, t, X_FFT):
         self.M = len(X)
         self.t = t
         self.poly_deg = 1
@@ -247,14 +246,31 @@ class Mean_value_decomposition():
         # p_0 = poly1d(polyfit(self.t[0:self.poly_deg+1], X[0:self.poly_deg+1],self.poly_deg))
         # p_f = poly1d(polyfit(self.t[self.M-self.poly_deg-1:self.M], X[self.M-self.poly_deg-1:self.M],self.poly_deg))
 
-        p_0 = interpolate.interp1d(self.t[0:self.poly_deg+1], X[0:self.poly_deg+1], kind="linear", fill_value="extrapolate")
-        p_f = interpolate.interp1d(self.t[self.M-self.poly_deg-1:self.M], X[self.M-self.poly_deg-1:self.M], kind="linear", fill_value="extrapolate")
+        # p_0 = interpolate.interp1d(self.t[0:self.poly_deg+1], X[0:self.poly_deg+1], kind="quadratic", fill_value="extrapolate")
+        # p_f = interpolate.interp1d(self.t[self.M-self.poly_deg-1:self.M], X[self.M-self.poly_deg-1:self.M], kind="quadratic", fill_value="extrapolate")
 
-        Y[0] = (p_0(self.t[0]-self.t[1]) + 4*X[0] + X[1])/6.
-        Y[self.M-1] = (p_f(2*self.t[self.M-1]-self.t[self.M-2]) + 4*X[self.M-1] + X[self.M-2])/6.
+        # Y[0] = (p_0(self.t[0]-self.t[1]) + 4*X[0] + X[1])/6.
+        # Y[self.M-1] = (p_f(2*self.t[self.M-1]-self.t[self.M-2]) + 4*X[self.M-1] + X[self.M-2])/6.
+
+        Y[0] = X[0]  
+        Y[self.M-1] = X[self.M-1]  
 
         for i in range(1,self.M-1):
             Y[i] = (X[i-1] + 4*X[i] + X[i+1])/6. 
+
+        # Y[0] =  (X[0] + X[1])/3.
+        # Y[self.M-1] = (X[self.M-2] + X[self.M-1])/3. 
+
+        # p_0 = interpolate.interp1d(self.t[1:self.poly_deg+2], Y[1:self.poly_deg+2], kind="linear", fill_value="extrapolate")
+        # p_f = interpolate.interp1d(self.t[self.M-1-self.poly_deg-2:self.M-1], Y[self.M-1-self.poly_deg-2:self.M-1], kind="linear", fill_value="extrapolate")
+
+        # Y[0] = (p_0(self.t[0]) + X[0])/3.
+        # Y[self.M-1] = (p_f(self.t[self.M-1]) + X[self.M-1])/3.   
+
+        # Y[0] = 2*Y[1] - Y[2]   
+        # Y[self.M-1] = 2*Y[self.M-2] - Y[self.M-3] 
+
+        # Y[self.M-1] = (X[self.M-2] + 4*X[self.M-1] + X[0])/6. 
 
         # Y[0] = (Y[1] + X[0])/2. 
         # Y[self.M-1] = (Y[self.M-2] + X[self.M-1])/2.
