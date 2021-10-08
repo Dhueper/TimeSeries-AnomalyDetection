@@ -73,7 +73,7 @@ def solar_power_sso(periods):
     for i in range(0,4):
         P_t = P_t + Px[i,:] + Py[i,:] 
 
-    P_t = P_t + 0.2*random.normal(0,1,len(t))
+    # P_t = P_t + 0.2*random.normal(0,1,len(t))
 
     return [t,P_t]  
 
@@ -81,12 +81,12 @@ def solar_power_sso(periods):
 def sin_function():
     t = linspace(0,1,1000)
     e = 0.2*random.normal(0,1,len(t))
-    y = 2*sin(2*pi*100 * t ) 
+    y = 2*sin(2*pi*100 * t + pi/2) 
     # print(len(t)/(50 * (t[1]-t[0])))
     return [t,y]  
 
 def square_function():
-    t = linspace(0,100,102)
+    t = linspace(0,100,100)
     y = zeros(len(t))
     for i in range(0,int(len(t)/2)):
         if i%2 == 1:
@@ -96,12 +96,6 @@ def square_function():
             y[2*i] = -1 
             y[2*i+1] = -1 
 
-    return [t,y] 
-
-def c():
-    t = linspace(0,100,100)
-    e = 0.1*random.normal(0,1,len(t))
-    y = zeros(len(t)) + 1 + e
     return [t,y] 
 
 if __name__ == "__main__":

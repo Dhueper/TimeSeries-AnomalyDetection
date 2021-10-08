@@ -10,11 +10,6 @@ import ts_analysis
 # [t, X] = test_function.solar_power_sso(1) 
 [t, X] = test_function.sin_function() 
 # [t, X] = test_function.square_function() 
-# [t, X] = test_function.c() 
-
-# decomposition = ts_analysis.Mean_value_decomposition( X, 1000,100, t)
-
-# X = decomposition.trend
 
 #Original time series plot
 plt.figure()
