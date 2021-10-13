@@ -1,5 +1,5 @@
 import warnings
-from numpy import array, flip, zeros, poly1d, polyfit, var, append, float64
+from numpy import array, flip, zeros, poly1d, polyfit, var, append, float64, mean
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq, ifft
 from scipy import interpolate
@@ -211,6 +211,27 @@ class Mean_value_decomposition():
 
         self.resid[:] = X[:] - self.trend[:] - self.seasonal #Residual component 
 
+        # Comparison of the magnitud orders
+        components = [self.trend, self.seasonal, self.resid] 
+        max_components = [max(self.trend), max(self.seasonal), max(self.resid)]
+        max_mean =[] 
+
+        for j in range(0,3):
+            selected_index = (-components[j]).argsort()[:int(self.M*0.1)]
+            max_mean.append(mean(array([components[j][i] for i in selected_index])))
+
+        max_index = max_mean.index(max(max_mean))
+
+        for i in range(0,3):
+            if i != max_index and max_components[i] < 0.005*max_mean[max_index]:
+                components[max_index] = components[max_index] + components[i]
+                components[i] = zeros(self.M)
+
+        self.trend = components[0]
+        self.seasonal = components[1]
+        self.resid = components[2]     
+
+
 
     def mean_value_filter(self, X):
         """Time series filter based on the mean value theorem and the trapezoid integration rule.
@@ -239,10 +260,17 @@ class Mean_value_decomposition():
             X (numpy.array), time series;
             trend (bool), True if the trend is to be computed.
 
-            Returns: Y(numpy.array), filtered time series.
+            Returns: Y (numpy.array), filtered time series.
         """
 
-        def f_var(x, Y):
+        def f_var(x, Y): 
+            """ Computes the difference between the variance with and without an end-point. 
+
+            x (float), end point;
+            Y (numpy.array), time series without end points.
+
+            Returns: delta_var (float), difference between variances.
+            """
             delta_var = var(Y, dtype=float64) - var(append(Y,x), dtype=float64)
             return delta_var
 
@@ -251,14 +279,17 @@ class Mean_value_decomposition():
         for i in range(1,self.M-1):
             Y[i] = (X[i-1] + 4*X[i] + X[i+1])/6. 
         
-        if trend:
-            Y[1] = (Y[1] + fsolve(f_var, x0=Y[1], args=Y[3:self.M-3]))/2. 
+        if trend: # Trend decomposition 
             Y[0] = fsolve(f_var, x0=X[0], args=Y[1:self.M-1])
 
-            Y[self.M-2] = (Y[self.M-2] + fsolve(f_var, x0=Y[self.M-2], args=Y[3:self.M-3]))/2. 
             Y[self.M-1] = fsolve(f_var, x0=X[self.M-1], args=Y[1:self.M-1])
-        else:
-            Y[0] = (2*X[0] + X[1])/3.  
-            Y[self.M-1] = (2*X[self.M-1] + X[self.M-2])/3. 
+
+            Y[1] = (Y[1] + fsolve(f_var, x0=Y[1], args=Y[3:self.M-3]))/2. 
+
+            Y[self.M-2] = (Y[self.M-2] + fsolve(f_var, x0=Y[self.M-2], args=Y[3:self.M-3]))/2. 
+            
+        else: # Noise filter or smoothing the seasonal component
+            Y[0] = 2*Y[1] - Y[2] 
+            Y[self.M-1] = 2*Y[self.M-2] - Y[self.M-3] 
         
         return Y
