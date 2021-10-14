@@ -8,8 +8,9 @@ import ts_analysis
 
 #%% Time series definition
 # [t, X] = test_function.solar_power_sso(1) 
-[t, X] = test_function.sin_function() 
-# [t, X] = test_function.square_function() 
+# [t, X] = test_function.sin_function() 
+[t, X] = test_function.square_function() 
+# [t, X] = test_function.cubic_function() 
 
 #Original time series plot
 plt.figure()

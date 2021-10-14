@@ -1,8 +1,7 @@
 import warnings
-from numpy import array, flip, zeros, poly1d, polyfit, var, append, float64, mean
+from numpy import array, flip, zeros, var, append, float64, mean
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq, ifft
-from scipy import interpolate
 from scipy.optimize import fsolve
 from matplotlib import pyplot as plt
 
@@ -171,17 +170,35 @@ class Mean_value_decomposition():
 
         if noise_filter: # If it is a noise reduction operation
             for _ in range(0,n):
-                self.trend = self.quadratic_mean_value_filter(self.trend, False) 
+                self.trend = self.mean_value_filter(self.trend, False) 
 
         else: # If not a noise reduction operation 
 
-            for _ in range(0,n):
-                self.trend = self.quadratic_mean_value_filter(self.trend, True)
+            #Equal variance algorithm for BC 
+            for _ in range(0,int(n/20)):
+                self.trend = self.mean_value_filter(self.trend, True)
+
+            #Linear interpolation to correct end-point desviations 
+            k = min(4*period, int(len(X)/4))
+            d_trend = zeros(int(k/2)+1)
+            for i in range(int(k/2),k+1):
+                d_trend[i-int(k/2)] = (self.trend[i+1] - self.trend[i-1])/(2)  
+            for i in range(0,int(k/2)):
+                self.trend[i] = mean(self.trend[1:1+k]) - mean(d_trend)*(int(k/2)-i)
+
+            for i in range(int(k/2),k+1):
+                d_trend[i-int(k/2)] = (self.trend[self.M-i] - self.trend[self.M-i-2])/(2) 
+            for i in range(0,int(k/2)):
+                self.trend[self.M-1-i] = mean(self.trend[self.M-2-k:self.M-2]) + mean(d_trend)*(int(k/2)-i)
+
+            #Linear BC 
+            for _ in range(0,int(19*n/20)):
+                self.trend = self.mean_value_filter(self.trend, False)
 
             self.seasonal[:] = X[:] - self.trend[:] #Detrended time series 
             if period > 20:
                 for _ in range(0,3):
-                    self.seasonal = self.quadratic_mean_value_filter(self.seasonal, False)
+                    self.seasonal = self.mean_value_filter(self.seasonal, False)
 
             seasonal_f = fft(self.seasonal)
             seasonal_fmax = max(abs(seasonal_f))
@@ -197,7 +214,7 @@ class Mean_value_decomposition():
             self.resid[:] = X[:] - self.trend[:] - self.seasonal[:] #Detrended and deseasonalized time series
             if period > 20:
                 for _ in range(0,5):
-                    self.resid = self.quadratic_mean_value_filter(self.resid, False)
+                    self.resid = self.mean_value_filter(self.resid, False)
 
             resid_f = fft(self.resid)
             resid_fmax = max(abs(resid_f))
@@ -231,39 +248,18 @@ class Mean_value_decomposition():
         self.seasonal = components[1]
         self.resid = components[2]     
 
-
-
-    def mean_value_filter(self, X):
-        """Time series filter based on the mean value theorem and the trapezoid integration rule.
-
-            X (numpy.array), time series.
-
-            Returns: Y(numpy.array), filtered time series.
-        """
-
-        M = self.M
-        Y = zeros(M)
-        # Y[0] = X[0]  
-        # Y[M-1] = X[M-1] 
-
-        for i in range(1,M-1):
-            Y[i] = (X[i-1] + 2*X[i] + X[i+1])/4. 
-
-        Y[0] = (Y[1] + X[0])/2. 
-        Y[M-1] = (Y[M-2] + X[M-1])/2.  
-        
-        return Y
-
-    def quadratic_mean_value_filter(self, X, trend):
-        """Time series filter based on the mean value theorem and the simpson (quadratic) integration rule.
+    def mean_value_filter(self, X, trend, alpha=2):
+        """Time series filter based on the mean value theorem and a discrete integration rule:
+        alpha=1 (linear), alpha=2 (quadratic).
 
             X (numpy.array), time series;
-            trend (bool), True if the trend is to be computed.
+            trend (bool), True if the trend is to be computed;
+            alpha (integer), order of the filter.
 
             Returns: Y (numpy.array), filtered time series.
         """
 
-        def f_var(x, Y): 
+        def f_var(x, Y, j): 
             """ Computes the difference between the variance with and without an end-point. 
 
             x (float), end point;
@@ -272,23 +268,31 @@ class Mean_value_decomposition():
             Returns: delta_var (float), difference between variances.
             """
             delta_var = var(Y, dtype=float64) - var(append(Y,x), dtype=float64)
-            return delta_var
+
+            if j<2:
+                delta_d2Y = (Y[j] - 2*Y[j+1] + Y[j+2]) - (x - 2*Y[j] + Y[j+1])
+            else:
+                k = int(j-len(Y))+1
+                delta_d2Y = (Y[j-k] - 2*Y[j-k-1] + Y[j-k-2]) - (x - 2*Y[j-k] + Y[j-k-1])
+            return abs(delta_var) + abs(delta_d2Y)
 
         Y = zeros(self.M, dtype=float64)    
 
         for i in range(1,self.M-1):
-            Y[i] = (X[i-1] + 4*X[i] + X[i+1])/6. 
+            Y[i] = (X[i-1] + 2*alpha*X[i] + X[i+1])/(2 * (alpha+1)) 
         
         if trend: # Trend decomposition 
-            Y[0] = fsolve(f_var, x0=X[0], args=Y[1:self.M-1])
 
-            Y[self.M-1] = fsolve(f_var, x0=X[self.M-1], args=Y[1:self.M-1])
+            Y[0] = fsolve(f_var, x0=X[0], args=(Y[1:self.M-1], 0))
 
-            Y[1] = (Y[1] + fsolve(f_var, x0=Y[1], args=Y[3:self.M-3]))/2. 
+            Y[self.M-1] = fsolve(f_var, x0=X[self.M-1], args=(Y[1:self.M-1], self.M-1))
 
-            Y[self.M-2] = (Y[self.M-2] + fsolve(f_var, x0=Y[self.M-2], args=Y[3:self.M-3]))/2. 
+            Y[1] = (Y[1] + fsolve(f_var, x0=Y[1], args=(Y[4:self.M-4], 1)))/2. 
+
+            Y[self.M-2] = (Y[self.M-2] + fsolve(f_var, x0=Y[self.M-2], args=(Y[4:self.M-4], self.M-2)))/2. 
             
         else: # Noise filter or smoothing the seasonal component
+
             Y[0] = 2*Y[1] - Y[2] 
             Y[self.M-1] = 2*Y[self.M-2] - Y[self.M-3] 
         
