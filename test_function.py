@@ -86,7 +86,7 @@ def sin_function():
     return [t,y]  
 
 def square_function():
-    t = linspace(0,100,102)
+    t = linspace(0,100,100)
     y = zeros(len(t))
     for i in range(0,int(len(t)/2)):
         if i%2 == 1:

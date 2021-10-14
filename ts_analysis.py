@@ -175,8 +175,10 @@ class Mean_value_decomposition():
         else: # If not a noise reduction operation 
 
             #Equal variance algorithm for BC 
-            for _ in range(0,int(n/20)):
-                self.trend = self.mean_value_filter(self.trend, True)
+            for _ in range(0,int(n/40)):
+                self.trend = self.mean_value_filter(self.trend, True, alpha=1)
+                self.trend = self.mean_value_filter(self.trend, True, alpha=2)
+
 
             #Linear interpolation to correct end-point desviations 
             k = min(4*period, int(len(X)/4))
@@ -260,12 +262,13 @@ class Mean_value_decomposition():
         """
 
         def f_var(x, Y, j): 
-            """ Computes the difference between the variance with and without an end-point. 
+            """ Computes the difference between the variance and the second derivative with and without an end-point. 
 
             x (float), end point;
-            Y (numpy.array), time series without end points.
+            Y (numpy.array), time series without end points;
+            j (integer), index of array Y.
 
-            Returns: delta_var (float), difference between variances.
+            Returns: delta_abs (float), difference between variances and second derivatives.
             """
             delta_var = var(Y, dtype=float64) - var(append(Y,x), dtype=float64)
 
@@ -274,7 +277,9 @@ class Mean_value_decomposition():
             else:
                 k = int(j-len(Y))+1
                 delta_d2Y = (Y[j-k] - 2*Y[j-k-1] + Y[j-k-2]) - (x - 2*Y[j-k] + Y[j-k-1])
-            return abs(delta_var) + abs(delta_d2Y)
+
+            delta_abs = abs(delta_var) + abs(delta_d2Y)
+            return delta_abs
 
         Y = zeros(self.M, dtype=float64)    
 
