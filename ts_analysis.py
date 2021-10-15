@@ -35,7 +35,7 @@ def ts_decomposition(df,**kwargs):
 
     if plot:
         plt.figure()
-        plt.plot(X_FFT.f[:len(X)//2], 2/len(X) * abs(X_FFT.Xf[0:len(X)//2]))
+        plt.plot(X_FFT.f[:len(X)//2], 2/len(X) * abs(X_FFT.Xf[0:len(X)//2]), '+')
         plt.xlabel('f [Hz]')
         plt.ylabel('FFT')
         plt.title('FFT time series') 
