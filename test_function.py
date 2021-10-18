@@ -81,7 +81,7 @@ def solar_power_sso(periods):
 def sin_function():
     t = linspace(0,1,1000)
     e = 0.2*random.normal(0,1,len(t))
-    y = 2*sin(2*pi*100 * t + pi/2) 
+    y = 2*sin(2*pi*100 * t ) 
     # print(len(t)/(50 * (t[1]-t[0])))
     return [t,y]  
 

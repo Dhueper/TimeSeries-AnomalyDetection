@@ -195,7 +195,7 @@ class Mean_value_decomposition():
 
             #Linear BC 
             for _ in range(0,int(19*n/20)):
-                self.trend = self.mean_value_filter(self.trend, False)
+                self.trend = self.mean_value_filter(self.trend, False,alpha=0)
 
             self.seasonal[:] = X[:] - self.trend[:] #Detrended time series 
             if period > 20:
