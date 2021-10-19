@@ -101,7 +101,7 @@ def square_function():
 def cubic_function():
     t = linspace(0,1,2000)
     # e = 0.2*random.normal(0,1,len(t))
-    y = t**3. + (sin(2*pi*50 * t)) 
+    y = t**3. + (sin(2*pi*50 * t)) + 1
     return [t,y]  
 
 def test_sine():

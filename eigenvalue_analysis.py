@@ -18,6 +18,20 @@ def analytical_ev(alpha):
 def numerical_eigenvalues(A):
     pass
 
+def gain_periodic(t,alpha):
+    G = (alpha + cos(2*pi*t))/(alpha+1)
+    G[0] =  (alpha + 0.5*cos(2*pi*t[0]))/(alpha+1)
+    G[-1] = (alpha + 0.5*cos(2*pi*t[-1]))/(alpha+1) 
+    return G
+
+def gain_polynomial(t,alpha,q):
+    delta_t = t[1] - t[0]
+    G = ((1-delta_t/t)**q + 2*alpha + (1+delta_t/t)**q) / (2*(alpha+1))
+    G[0]  = (2*alpha + (1+delta_t/t[0])**q) / (2*(alpha+1))
+    G[-1] = ((1-delta_t/t[-1])**q + 2*alpha) / (2*(alpha+1))
+    return G 
+
+
 
 if __name__ == "__main__":
     #Analytical 
@@ -80,7 +94,7 @@ if __name__ == "__main__":
     sum_v = zeros(N)
     for i in range(0,int(N)):
         v[i] = dot(X,order_vec[i,:])
-        sum_v = sum_v + v[i]* order_vec[i,:]*order_val[i]**50. 
+        sum_v = sum_v + v[i]* order_vec[i,:]
     plt.plot(sum_v)
     plt.xlabel('t')
     plt.ylabel('eigenvectors')
@@ -89,7 +103,7 @@ if __name__ == "__main__":
     #Test 
     plt.figure()
     plt.plot(t,X)
-    Y = matmul(linalg.matrix_power(A,50),X)
+    Y = matmul(linalg.matrix_power(A,10),X)
     # Y2 = zeros(N)
     # for i in range(0,4):
     #     Y2[0] =  (2*alpha*X[0] + X[1])/(2* (alpha+1))  
@@ -102,6 +116,16 @@ if __name__ == "__main__":
     plt.xlabel('t')
     plt.ylabel('X(t)')
     plt.title('Test function')
+
+
+    #Gain
+    plt.figure()
+    plt.plot(t, gain_periodic(t,alpha), 'r')
+    plt.plot(t, gain_polynomial(t,alpha,1),'b')
+    plt.xlabel('t')
+    plt.ylabel('G(t)')
+    plt.title('Gain')
+    plt.legend(['Periodic', 'Polynomial'])
     plt.show()
 
 

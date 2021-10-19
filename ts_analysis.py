@@ -175,27 +175,27 @@ class Mean_value_decomposition():
         else: # If not a noise reduction operation 
 
             #Equal variance algorithm for BC 
-            for _ in range(0,int(n/40)):
-                self.trend = self.mean_value_filter(self.trend, True, alpha=1)
-                self.trend = self.mean_value_filter(self.trend, True, alpha=2)
+            # for _ in range(0,int(n/40)):
+            #     self.trend = self.mean_value_filter(self.trend, True, alpha=1)
+            #     self.trend = self.mean_value_filter(self.trend, True, alpha=2)
 
 
-            #Linear interpolation to correct end-point desviations 
-            k = min(4*period, int(len(X)/4))
-            d_trend = zeros(int(k/2)+1)
-            for i in range(int(k/2),k+1):
-                d_trend[i-int(k/2)] = (self.trend[i+1] - self.trend[i-1])/(2)  
-            for i in range(0,int(k/2)):
-                self.trend[i] = mean(self.trend[1:1+k]) - mean(d_trend)*(int(k/2)-i)
+            # #Linear interpolation to correct end-point desviations 
+            # k = min(4*period, int(len(X)/4))
+            # d_trend = zeros(int(k/2)+1)
+            # for i in range(int(k/2),k+1):
+            #     d_trend[i-int(k/2)] = (self.trend[i+1] - self.trend[i-1])/(2)  
+            # for i in range(0,int(k/2)):
+            #     self.trend[i] = mean(self.trend[1:1+k]) - mean(d_trend)*(int(k/2)-i)
 
-            for i in range(int(k/2),k+1):
-                d_trend[i-int(k/2)] = (self.trend[self.M-i] - self.trend[self.M-i-2])/(2) 
-            for i in range(0,int(k/2)):
-                self.trend[self.M-1-i] = mean(self.trend[self.M-2-k:self.M-2]) + mean(d_trend)*(int(k/2)-i)
+            # for i in range(int(k/2),k+1):
+            #     d_trend[i-int(k/2)] = (self.trend[self.M-i] - self.trend[self.M-i-2])/(2) 
+            # for i in range(0,int(k/2)):
+            #     self.trend[self.M-1-i] = mean(self.trend[self.M-2-k:self.M-2]) + mean(d_trend)*(int(k/2)-i)
 
             #Linear BC 
             for _ in range(0,int(19*n/20)):
-                self.trend = self.mean_value_filter(self.trend, False,alpha=0)
+                self.trend = self.mean_value_filter(self.trend, False,alpha=1)
 
             self.seasonal[:] = X[:] - self.trend[:] #Detrended time series 
             if period > 20:
@@ -231,24 +231,24 @@ class Mean_value_decomposition():
         self.resid[:] = X[:] - self.trend[:] - self.seasonal #Residual component 
 
         # Comparison of the magnitud orders
-        components = [self.trend, self.seasonal, self.resid] 
-        max_components = [max(self.trend), max(self.seasonal), max(self.resid)]
-        max_mean =[] 
+        # components = [self.trend, self.seasonal, self.resid] 
+        # max_components = [max(self.trend), max(self.seasonal), max(self.resid)]
+        # max_mean =[] 
 
-        for j in range(0,3):
-            selected_index = (-components[j]).argsort()[:int(self.M*0.1)]
-            max_mean.append(mean(array([components[j][i] for i in selected_index])))
+        # for j in range(0,3):
+        #     selected_index = (-components[j]).argsort()[:int(self.M*0.1)]
+        #     max_mean.append(mean(array([components[j][i] for i in selected_index])))
 
-        max_index = max_mean.index(max(max_mean))
+        # max_index = max_mean.index(max(max_mean))
 
-        for i in range(0,3):
-            if i != max_index and max_components[i] < 0.005*max_mean[max_index]:
-                components[max_index] = components[max_index] + components[i]
-                components[i] = zeros(self.M)
+        # for i in range(0,3):
+        #     if i != max_index and max_components[i] < 0.005*max_mean[max_index]:
+        #         components[max_index] = components[max_index] + components[i]
+        #         components[i] = zeros(self.M)
 
-        self.trend = components[0]
-        self.seasonal = components[1]
-        self.resid = components[2]     
+        # self.trend = components[0]
+        # self.seasonal = components[1]
+        # self.resid = components[2]     
 
     def mean_value_filter(self, X, trend, alpha=2):
         """Time series filter based on the mean value theorem and a discrete integration rule:
@@ -298,7 +298,9 @@ class Mean_value_decomposition():
             
         else: # Noise filter or smoothing the seasonal component
 
-            Y[0] = 2*Y[1] - Y[2] 
-            Y[self.M-1] = 2*Y[self.M-2] - Y[self.M-3] 
+            # Y[0] = 2*Y[1] - Y[2] 
+            # Y[self.M-1] = 2*Y[self.M-2] - Y[self.M-3] 
+            Y[0] = (2*X[0] + X[1])/4.  
+            Y[self.M-1] = (2*X[self.M-1] + X[self.M-2])/4.
         
         return Y
