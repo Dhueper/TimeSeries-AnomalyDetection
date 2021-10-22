@@ -58,16 +58,16 @@ if __name__ == "__main__":
     alpha = 1
     A = zeros((N,N))
 
-    A[0,0] = 1
+    # A[0,0] = 1
 
-    A[N-1,N-1] = 1
+    # A[N-1,N-1] = 1
 
 
-    # A[0,0] = alpha/(alpha+1) - 1./(2*(alpha+1))
-    # A[0,1] = 1./(2*(alpha+1))
+    A[0,0] = alpha/(alpha+1) - 1./(2*(alpha+1))
+    A[0,1] = 1./(2*(alpha+1))
 
-    # A[N-1,N-1] = alpha/(alpha+1) - 1./(2*(alpha+1))
-    # A[N-1,N-2] = 1./(2*(alpha+1))
+    A[N-1,N-1] = alpha/(alpha+1) - 1./(2*(alpha+1))
+    A[N-1,N-2] = 1./(2*(alpha+1))
 
     # A[0,0] = alpha/(alpha+1)
     # A[0,1] = 1./(2*(alpha+1))
@@ -84,9 +84,9 @@ if __name__ == "__main__":
 
     e_val, e_vec = linalg.eig(A)
 
-    index = argsort(e_val)
-    order_val = array([e_val[i] for i in index])
-    order_vec = array([e_vec[i,:] for i in index])
+    idx = e_val.argsort()[::-1]   
+    order_val = e_val[idx]
+    order_vec = e_vec[:,idx]
 
     plt.figure()
     plt.plot(order_val)
@@ -98,13 +98,16 @@ if __name__ == "__main__":
     v = zeros(N)
     sum_v = zeros(N)
     for i in range(0,int(N)):
-        v[i] = dot(X,order_vec[i,:])
-        sum_v = sum_v + v[i]* order_vec[i,:]
+        v[i] = dot(X,order_vec[:,i])
+        sum_v = sum_v + v[i]* order_vec[:,i]
 
-    plt.plot(order_vec[0,:])
-    plt.plot(order_vec[1,:])
-    plt.plot(order_vec[2,:])
-    plt.legend(['lambda='+str(order_val[0]),'lambda='+str(order_val[1]),'lambda='+str(order_val[2])] )
+
+    legend =[] 
+    for i in range(0,5):
+        plt.plot(order_vec[:,i])
+        legend.append('lambda='+str(order_val[i]))
+
+    plt.legend(legend)
     plt.xlabel('t')
     plt.ylabel('eigenvectors')
     plt.title('Numerical eigenvectors')
