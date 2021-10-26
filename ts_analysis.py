@@ -1,5 +1,5 @@
 import warnings
-from numpy import array, flip, zeros, var, append, float64, mean
+from numpy import array, flip, zeros, var, append, float64, mean, sqrt
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq, ifft
 from scipy.optimize import fsolve
@@ -194,8 +194,13 @@ class Mean_value_decomposition():
                 self.trend[self.M-1-i] = mean(self.trend[self.M-2-k:self.M-2]) + mean(d_trend)*(int(k/2)-i)
 
             #Linear BC 
-            for _ in range(0,int(19*n/20)):
-                self.trend = self.mean_value_filter(self.trend, False,alpha=0)
+            for i in range(0,int(19*n/20)):
+                aux_trend = self.mean_value_filter(self.trend, False,alpha=0)
+                if abs(var(aux_trend, dtype=float64) - var(self.trend, dtype=float64)) < 1e-7:
+                    print('n_max=',i)
+                    break
+                else:
+                    self.trend[:] = aux_trend[:]  
 
             self.seasonal[:] = X[:] - self.trend[:] #Detrended time series 
             if period > 20:
