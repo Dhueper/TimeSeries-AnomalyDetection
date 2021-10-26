@@ -51,23 +51,23 @@ if __name__ == "__main__":
     N = 500
 
     t = linspace(0,1,N)
-    # X = t**3. + cos(2*pi*50 * t)
-    X = 1 + t*0
-    # X = sin(2*pi*10 * t)
+    X = t**3. + cos(2*pi*50 * t)
+    # X = 1 + t*0
+    # X = sin(2*pi/(4*(t[1]-t[0])) * t)
 
-    alpha = 1
+    alpha = -cos(2*pi*50*(t[1]-t[0]))
     A = zeros((N,N))
 
-    # A[0,0] = 1
+    A[0,0] = 1
 
-    # A[N-1,N-1] = 1
+    A[N-1,N-1] = 1
 
 
-    A[0,0] = alpha/(alpha+1) - 1./(2*(alpha+1))
-    A[0,1] = 1./(2*(alpha+1))
+    # A[0,0] = alpha/(alpha+1) - 1./(2*(alpha+1))
+    # A[0,1] = 1./(2*(alpha+1))
 
-    A[N-1,N-1] = alpha/(alpha+1) - 1./(2*(alpha+1))
-    A[N-1,N-2] = 1./(2*(alpha+1))
+    # A[N-1,N-1] = alpha/(alpha+1) - 1./(2*(alpha+1))
+    # A[N-1,N-2] = 1./(2*(alpha+1))
 
     # A[0,0] = alpha/(alpha+1)
     # A[0,1] = 1./(2*(alpha+1))
@@ -94,14 +94,13 @@ if __name__ == "__main__":
     plt.ylabel('eigenvalues')
     plt.title('Numerical eigenvalues')
 
+    # v = zeros(N)
+    # sum_v = zeros(N)
+    # for i in range(0,int(N)):
+    #     v[i] = dot(X,order_vec[:,i])
+    #     sum_v = sum_v + v[i]* order_vec[:,i]
+
     plt.figure()
-    v = zeros(N)
-    sum_v = zeros(N)
-    for i in range(0,int(N)):
-        v[i] = dot(X,order_vec[:,i])
-        sum_v = sum_v + v[i]* order_vec[:,i]
-
-
     legend =[] 
     for i in range(0,5):
         plt.plot(order_vec[:,i])
@@ -115,7 +114,7 @@ if __name__ == "__main__":
     #Test 
     plt.figure()
     plt.plot(t,X)
-    Y = matmul(linalg.matrix_power(A,10),X)
+    Y = matmul(linalg.matrix_power(A,1),X)
     # Y2 = zeros(N)
     # for i in range(0,4):
     #     Y2[0] =  (2*alpha*X[0] + X[1])/(2* (alpha+1))  

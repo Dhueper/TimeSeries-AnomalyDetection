@@ -1,5 +1,5 @@
 import warnings
-from numpy import array, flip, zeros, var, append, float64, mean, sqrt
+from numpy import array, flip, zeros, var, append, float64, mean, sqrt, pi, cos, matmul
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq, ifft
 from scipy.optimize import fsolve
@@ -62,7 +62,7 @@ def ts_decomposition(df,**kwargs):
         if kwargs["noise_filter"]:
             noise_filter = True
             n_noise_filter = max(round(period/10),1) #Times the recursive noise filter is applied 
-            noiseless = Mean_value_decomposition(X, n_noise_filter, period, t, True)
+            noiseless = Mean_value_decomposition(X, n_noise_filter, period, t, True, X_FFT.f_th)
             X[:] = noiseless.trend[:] + noiseless.seasonal[:]   
         else:
             noise_filter = False
@@ -86,7 +86,7 @@ def ts_decomposition(df,**kwargs):
             # decomposition = Mean_value_decomposition( X, max(int(len(X)/2),100*period))
             # n_decom = int(50*X_FFT.Xf_th*period)
             n_decom = int(100*period)
-            decomposition = Mean_value_decomposition( X, n_decom, period, t, False)
+            decomposition = Mean_value_decomposition( X, n_decom, period, t, False, X_FFT.f_th)
         else:
             warnings.warn("Unavailable method, used seasonal_decompose by default.", stacklevel=2)
             decomposition = seasonal_decompose(X, model="additive", period=period)
@@ -157,7 +157,7 @@ class Mean_value_decomposition():
             Attributes: trend, seasonal and resid.
          """
 
-    def __init__(self, X, n, period, t, noise_filter):
+    def __init__(self, X, n, period, t, noise_filter, f_th):
         self.M = len(X)
         self.t = t
         self.period = period
@@ -289,7 +289,7 @@ class Mean_value_decomposition():
         Y = zeros(self.M, dtype=float64)    
 
         for i in range(1,self.M-1):
-            Y[i] = (X[i-1] + 2*alpha*X[i] + X[i+1])/(2 * (alpha+1)) 
+            Y[i] = (X[i-1] + 2*alpha*X[i] + X[i+1])/(2. * (alpha+1)) 
         
         if trend: # Trend decomposition 
 
