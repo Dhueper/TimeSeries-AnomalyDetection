@@ -1,4 +1,4 @@
-from numpy import linalg, linspace, pi, cos, sin, zeros, sort, argsort, array, matmul, dot
+from numpy import linalg, linspace, pi, cos, sin, zeros, sort, argsort, array, matmul, dot, mean
 from matplotlib import pyplot as plt
 
 import test_function
@@ -55,7 +55,8 @@ if __name__ == "__main__":
     # X = 1 + t*0
     # X = sin(2*pi/(4*(t[1]-t[0])) * t)
 
-    alpha = -cos(2*pi*50*(t[1]-t[0]))
+    # alpha = -cos(2*pi*50*(t[1]-t[0]))
+    alpha = 0
     A = zeros((N,N))
 
     A[0,0] = 1

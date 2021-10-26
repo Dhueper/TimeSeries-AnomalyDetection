@@ -194,9 +194,12 @@ class Mean_value_decomposition():
                 self.trend[self.M-1-i] = mean(self.trend[self.M-2-k:self.M-2]) + mean(d_trend)*(int(k/2)-i)
 
             #Linear BC 
+            alpha = max(0,-cos(2*pi*f_th*(t[1]-t[0])))
+            print('alpha=',alpha)
             for i in range(0,int(19*n/20)):
-                aux_trend = self.mean_value_filter(self.trend, False,alpha=0)
+                aux_trend = self.mean_value_filter(self.trend, False,alpha=alpha)
                 if abs(var(aux_trend, dtype=float64) - var(self.trend, dtype=float64)) < 1e-7:
+                    self.trend[:] = aux_trend[:] 
                     print('n_max=',i)
                     break
                 else:

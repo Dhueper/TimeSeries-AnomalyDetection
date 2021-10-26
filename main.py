@@ -7,10 +7,10 @@ import test_function
 import ts_analysis
 
 #%% Time series definition
-# [t, X] = test_function.solar_power_sso(1) 
+[t, X] = test_function.solar_power_sso(1) 
 # [t, X] = test_function.sin_function() 
 # [t, X] = test_function.square_function() 
-[t, X] = test_function.cubic_function() 
+# [t, X] = test_function.cubic_function() 
 # [t, X] = test_function.test_sine()
 
 #Original time series plot
