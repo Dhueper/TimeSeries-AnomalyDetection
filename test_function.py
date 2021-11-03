@@ -116,8 +116,8 @@ def test_sine():
 
 def read(filename): 
   file = open(filename,'r')
-#   N = len(file.readlines())
-  N = 4000
+  N = len(file.readlines())
+#   N = 4000
   file.seek(0)
   time = zeros(N-1)
   x = zeros(N-1)
