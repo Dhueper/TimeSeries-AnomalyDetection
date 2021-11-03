@@ -114,6 +114,24 @@ def test_sine():
 
     return [t,y] 
 
+def read(filename): 
+  file = open(filename,'r')
+#   N = len(file.readlines())
+  N = 4000
+  file.seek(0)
+  time = zeros(N-1)
+  x = zeros(N-1)
+  file.readline()
+
+  for i in range(0,N-1):
+    line = array(file.readline().split(','))
+    time[i] = float(line[0])
+    x[i] = float(line[2])
+    # x[i] = float(line[1].split('\\')[0])
+
+  file.close()
+  return time, x
+
 if __name__ == "__main__":
     [t, P_t] = cubic_function()
      #Plots

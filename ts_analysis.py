@@ -2,7 +2,7 @@ import warnings
 from numpy import array, flip, zeros, var, append, float64, mean, sqrt, pi, cos, matmul, log10
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq, ifft
-from scipy.optimize import fsolve
+from scipy.optimize import fsolve, minimize
 from matplotlib import pyplot as plt
 
 def ts_decomposition(df,**kwargs):
@@ -183,12 +183,12 @@ class Mean_value_decomposition():
             #Linear interpolation to correct end-point desviations 
             k = min(4*period, int(len(X)/4))
             d_trend = zeros(int(k/2)+1)
-            for i in range(int(k/2),k+1):
+            for i in range(int(k/2),k):
                 d_trend[i-int(k/2)] = (self.trend[i+1] - self.trend[i-1])/(2)  
             for i in range(0,int(k/2)):
                 self.trend[i] = mean(self.trend[1:1+k]) - mean(d_trend)*(int(k/2)-i)
 
-            for i in range(int(k/2),k+1):
+            for i in range(int(k/2),k):
                 d_trend[i-int(k/2)] = (self.trend[self.M-i] - self.trend[self.M-i-2])/(2) 
             for i in range(0,int(k/2)):
                 self.trend[self.M-1-i] = mean(self.trend[self.M-2-k:self.M-2]) + mean(d_trend)*(int(k/2)-i)
@@ -204,7 +204,7 @@ class Mean_value_decomposition():
                     break
                 else:
                     self.trend[:] = aux_trend[:] 
-            print(10**(-7 - int(log10(var(aux_trend, dtype=float64)))))
+            print(10**(-9 - int(log10(var(aux_trend, dtype=float64)))))
 
             self.seasonal[:] = X[:] - self.trend[:] #Detrended time series 
             if period > 20:
@@ -297,13 +297,13 @@ class Mean_value_decomposition():
         
         if trend: # Trend decomposition 
 
-            Y[0] = fsolve(f_var, x0=X[0], args=(Y[1:self.M-1], 0))
+            Y[0] = minimize(f_var, x0=X[0], args=(Y[1:self.M-1], 0), tol=0.1*abs(X[0])).x
 
-            Y[self.M-1] = fsolve(f_var, x0=X[self.M-1], args=(Y[1:self.M-1], self.M-1))
+            Y[self.M-1] = minimize(f_var, x0=X[self.M-1], args=(Y[1:self.M-1], self.M-1), tol=0.1*abs(X[self.M-1])).x
 
-            Y[1] = (Y[1] + fsolve(f_var, x0=Y[1], args=(Y[4:self.M-4], 1)))/2. 
+            Y[1] = (Y[1] + minimize(f_var, x0=Y[1], args=(Y[4:self.M-4], 1), tol=0.1*abs(Y[1])).x)/2. 
 
-            Y[self.M-2] = (Y[self.M-2] + fsolve(f_var, x0=Y[self.M-2], args=(Y[4:self.M-4], self.M-2)))/2. 
+            Y[self.M-2] = (Y[self.M-2] + minimize(f_var, x0=Y[self.M-2], args=(Y[4:self.M-4], self.M-2), tol=0.1*abs(Y[self.M-2])).x)/2. 
             
         else: # Noise filter or smoothing the seasonal component
 
