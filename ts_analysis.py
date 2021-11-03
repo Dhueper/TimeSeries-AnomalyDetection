@@ -1,5 +1,5 @@
 import warnings
-from numpy import array, flip, zeros, var, append, float64, mean, sqrt, pi, cos, matmul, log10
+from numpy import array, flip, zeros, var, append, float64, mean, sqrt, pi, cos, matmul, log10, exp
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq, ifft
 from scipy.optimize import fsolve, minimize
@@ -182,13 +182,13 @@ class Mean_value_decomposition():
 
             #Linear interpolation to correct end-point desviations 
             k = min(4*period, int(len(X)/4))
-            d_trend = zeros(int(k/2)+1)
-            for i in range(int(k/2),k):
+            d_trend = zeros(k-int(k/2)+1)
+            for i in range(int(k/2),k+1):
                 d_trend[i-int(k/2)] = (self.trend[i+1] - self.trend[i-1])/(2)  
             for i in range(0,int(k/2)):
                 self.trend[i] = mean(self.trend[1:1+k]) - mean(d_trend)*(int(k/2)-i)
 
-            for i in range(int(k/2),k):
+            for i in range(int(k/2),k+1):
                 d_trend[i-int(k/2)] = (self.trend[self.M-i] - self.trend[self.M-i-2])/(2) 
             for i in range(0,int(k/2)):
                 self.trend[self.M-1-i] = mean(self.trend[self.M-2-k:self.M-2]) + mean(d_trend)*(int(k/2)-i)
@@ -198,13 +198,13 @@ class Mean_value_decomposition():
             print('alpha=',alpha)
             for i in range(0,int(19*n/20)):
                 aux_trend = self.mean_value_filter(self.trend, False,alpha=alpha)
-                if abs(var(aux_trend, dtype=float64) - var(self.trend, dtype=float64))/var(aux_trend, dtype=float64) < 10**(-9 - int(log10(var(aux_trend, dtype=float64)))):
+                # if abs(var(aux_trend, dtype=float64) - var(self.trend, dtype=float64))/var(aux_trend, dtype=float64) < 10**(-9 - int(log10(var(aux_trend, dtype=float64)))):
+                if max(abs(aux_trend - self.trend))*var(aux_trend, dtype=float64) < (max(aux_trend)-min(aux_trend)) * 1e-7:
                     self.trend[:] = aux_trend[:] 
                     print('n_max=',i)
                     break
                 else:
                     self.trend[:] = aux_trend[:] 
-            print(10**(-9 - int(log10(var(aux_trend, dtype=float64)))))
 
             self.seasonal[:] = X[:] - self.trend[:] #Detrended time series 
             if period > 20:

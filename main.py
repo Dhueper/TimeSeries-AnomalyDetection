@@ -33,7 +33,7 @@ df = pd.DataFrame(time_series, columns=["time", "X(t)", "id"])
 df.set_index("time", inplace=True) 
 
 #Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose' and 'mean_value'
-decomposition = ts_analysis.ts_decomposition(df, plot=True, method='mean_value', noise_filter=True)
+decomposition = ts_analysis.ts_decomposition(df, plot=True, method='mean_value', noise_filter=False)
 
 plt.show()
 
