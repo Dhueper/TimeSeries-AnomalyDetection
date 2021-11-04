@@ -30,12 +30,12 @@ def make_timeseries_regressor(window_size, filter_length, nb_input_series=1, nb_
         # The first conv layer learns `nb_filter` filters (aka kernels), each of size ``(filter_length, nb_input_series)``.
         # Its output will have shape (None, window_size - filter_length + 1, nb_filter), i.e., for each position in
         # the input timeseries, the activation of each filter at that position.
-        keras.layers.Conv1D(filters=nb_filter, kernel_size=filter_length, activation='relu', input_shape=(window_size, nb_input_series)),
+        keras.layers.Conv1D(filters=nb_filter, kernel_size=filter_length, activation='linear', input_shape=(window_size, nb_input_series)),
         keras.layers.MaxPooling1D(),     # Downsample the output of convolution by 2X.
-        keras.layers.Conv1D(filters=nb_filter, kernel_size=filter_length, activation='relu'),
-        keras.layers.MaxPooling1D(),
+        # keras.layers.Conv1D(filters=nb_filter, kernel_size=filter_length, activation='relu'),
+        # keras.layers.MaxPooling1D(),
         keras.layers.Flatten(),
-        keras.layers.Dense(window_size, activation='linear'),     # For binary classification, change the activation to 'sigmoid'
+        keras.layers.Dense(window_size, activation=None),     # For binary classification, change the activation to 'sigmoid'
     ))
     model.compile(loss='mse', optimizer='adam', metrics=['mae'])
     # To perform (binary) classification instead:
@@ -69,8 +69,8 @@ def evaluate_timeseries(timeseries, smoothed_timeseries, window_size):
     :param ndarray timeseries: Timeseries data with time increasing down the rows (the leading dimension/axis).
     :param int window_size: The number of previous timeseries values to use to predict the next.
     """
-    filter_length = 5
-    nb_filter = 4
+    filter_length = 3
+    nb_filter = 1
     timeseries = np.atleast_2d(timeseries)
     if timeseries.shape[0] == 1:
         timeseries = timeseries.T       # Convert 1D vectors to 2D column vectors
@@ -89,25 +89,27 @@ def evaluate_timeseries(timeseries, smoothed_timeseries, window_size):
     print('\n\nInput features:', X, '\n\nOutput labels:', y)
     test_size = int(0.01 * nb_samples)           # In real life you'd want to use 0.2 - 0.5
     X_train, X_test, y_train, y_test = X[:-test_size], X[-test_size:], y[:-test_size], y[-test_size:]
-    model.fit(X_train, y_train, epochs=500, batch_size=4, validation_data=(X_test, y_test))
+    model.fit(X_train, y_train, epochs=500, batch_size=2, validation_data=(X_test, y_test))
 
-    pred = model.predict(X_test)
+    return model
 
-    real = y_test.reshape(-1)
-    pred = pred.reshape(-1)
+    # pred = model.predict(X_test)
 
-    plt.figure()
-    plt.plot(real-pred)
-    plt.title('Error')
+    # real = y_test.reshape(-1)
+    # pred = pred.reshape(-1)
 
-    plt.figure()
-    plt.plot(real)
-    plt.plot(pred)
-    plt.xlabel('t')
-    plt.ylabel('Y(t)')
-    plt.title('Smoothed timeseries')
-    plt.legend(['Real', 'Estimated'])
-    plt.show()
+    # plt.figure()
+    # plt.plot(real-pred)
+    # plt.title('Error')
+
+    # plt.figure()
+    # plt.plot(real)
+    # plt.plot(pred)
+    # plt.xlabel('t')
+    # plt.ylabel('Y(t)')
+    # plt.title('Smoothed timeseries')
+    # plt.legend(['Real', 'Estimated'])
+    # plt.show()
 
 
 
@@ -127,9 +129,60 @@ def main():
     plt.plot(t,Y,'r')
     plt.title('Timeseries')
     plt.xlabel('t')
-    plt.ylabel('X(t)')
+    plt.ylabel('X(t)') 
 
-    evaluate_timeseries(X, Y, window_size)
+    model = evaluate_timeseries(X, Y, window_size)
+
+    #Test the model 
+
+    X_test = t**2. + np.sin(2*np.pi*50 * t) 
+    Y_test = t**2.
+
+    X_test = np.atleast_2d(X_test)
+    if X_test.shape[0] == 1:
+        X_test = X_test.T       # Convert 1D vectors to 2D column vectors
+    Y_test = np.atleast_2d(Y_test)
+    if Y_test.shape[0] == 1:
+        Y_test = Y_test.T 
+
+    X_test, real = make_timeseries_instances(X_test, Y_test, window_size)
+
+    pred = model.predict(X_test)
+
+    pred1 = pred.reshape(-1)
+    real = real.reshape(-1)
+
+    plt.figure()
+    plt.plot(real-pred1)
+    plt.title('Error')
+
+    plt.figure()
+    plt.plot(real)
+    plt.plot(pred1)
+    plt.xlabel('t')
+    plt.ylabel('Y(t)')
+    plt.title('Smoothed timeseries')
+    plt.legend(['Real', 'Estimated'])
+    plt.show()
+
+    # for i in range(0,10):
+    #   pred = pred.reshape(pred.shape[0],pred.shape[1],1)
+    #   pred = model.predict(pred)
+
+    # pred2 = pred.reshape(-1)
+
+    # plt.figure()
+    # plt.plot(real-pred2)
+    # plt.title('Error')
+
+    # plt.figure()
+    # plt.plot(real)
+    # plt.plot(pred2)
+    # plt.xlabel('t')
+    # plt.ylabel('Y(t)')
+    # plt.title('Smoothed timeseries')
+    # plt.legend(['Real', 'Estimated'])
+    # plt.show()
 
     # print('\nMultiple-input, multiple-output prediction')
     # timeseries = np.array([np.arange(ts_length), -np.arange(ts_length)]).T      # The timeseries f(t) = [t, -t]
