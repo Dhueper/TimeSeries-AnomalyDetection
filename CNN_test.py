@@ -32,8 +32,8 @@ def make_timeseries_regressor(window_size, filter_length, nb_input_series=1, nb_
         # the input timeseries, the activation of each filter at that position.
         keras.layers.Conv1D(filters=nb_filter, kernel_size=filter_length, activation='linear', input_shape=(window_size, nb_input_series)),
         keras.layers.MaxPooling1D(),     # Downsample the output of convolution by 2X.
-        keras.layers.Conv1D(filters=nb_filter*2, kernel_size=filter_length*2+1, activation='linear'),
-        keras.layers.AveragePooling1D(pool_size = 3),
+        keras.layers.Conv1D(filters=nb_filter, kernel_size=filter_length*2+1, activation='linear'),
+        keras.layers.AveragePooling1D(),
         keras.layers.Flatten(),
         keras.layers.Dense(window_size, activation=None),     # For binary classification, change the activation to 'sigmoid'
     ))
@@ -70,7 +70,7 @@ def evaluate_timeseries(timeseries, smoothed_timeseries, ts_test, sts_test, wind
     :param int window_size: The number of previous timeseries values to use to predict the next.
     """
     filter_length = 3  #Stencil 
-    nb_filter = 4     #Number of features to be learned 
+    nb_filter = 1    #Number of features to be learned 
 
     timeseries = adjust_shape(timeseries)      # Convert 1D vectors to 2D column vectors
     smoothed_timeseries = adjust_shape(smoothed_timeseries)   
@@ -87,7 +87,7 @@ def evaluate_timeseries(timeseries, smoothed_timeseries, ts_test, sts_test, wind
 
     X_test, y_test = make_timeseries_instances(ts_test, sts_test, window_size)
 
-    model.fit(X, y, epochs=30, batch_size=2, validation_data=(X_test, y_test))
+    model.fit(X, y, epochs=100, batch_size=2, validation_data=(X_test, y_test))
 
     return model
 
@@ -230,7 +230,7 @@ def main(X,Y,X_test,Y_test):
 
 if __name__ == '__main__':
 
-    N = 50
+    N = 30
     X, Y, X_test, Y_test = create_ts_dataset(N)
 
     main(X,Y,X_test,Y_test)
