@@ -4,6 +4,9 @@ from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq, ifft
 from scipy.optimize import fsolve, minimize
 from matplotlib import pyplot as plt
+from tensorflow.keras.models import load_model
+
+import CNN_test
 
 def ts_decomposition(df,**kwargs):
     """Time series decomposition in trend, seasonal/cyclic variations
@@ -12,7 +15,7 @@ def ts_decomposition(df,**kwargs):
         Intent(in): df(pandas DataFrame), time series;
         kwargs (optional): period(integer), time series period;
         plot(boolean), plot results, default = True;
-        method(string), method used for decomposition, 'seasonal_decompose' (default) or 'STL';
+        method(string), method used for decomposition, 'seasonal_decompose', 'STL' (default), 'mean_value' or 'CNN';
         noise_filter(boolean), apply noise reduction through mean value decomposition, default=False.
 
         Returns: decomposition(statsmodels class), time series decomposed in .trend, .seasonal and .resid
@@ -83,15 +86,16 @@ def ts_decomposition(df,**kwargs):
         elif kwargs['method'] == 'STL':
             decomposition = STL(X, period=period).fit()
         elif kwargs['method'] == 'mean_value':
-            # decomposition = Mean_value_decomposition( X, max(int(len(X)/2),100*period))
-            # n_decom = int(50*X_FFT.Xf_th*period)
             n_decom = int(100*period)
-            decomposition = Mean_value_decomposition( X, n_decom, period, t, False, X_FFT.f_th)
+            decomposition = Mean_value_decomposition( X, n_decom, period, t, False, X_FFT.f_th, False)
+        elif kwargs['method'] == 'CNN':
+            n_decom = int(50*period)
+            decomposition = Mean_value_decomposition( X, n_decom, period, t, False, X_FFT.f_th, True)
         else:
-            warnings.warn("Unavailable method, used seasonal_decompose by default.", stacklevel=2)
-            decomposition = seasonal_decompose(X, model="additive", period=period)
+            warnings.warn("Unavailable method, used STL by default.", stacklevel=2)
+            decomposition = STL(X, period=period).fit()
     else:
-        decomposition = seasonal_decompose(X, model="additive", period=period)
+        decomposition = STL(X, period=period).fit()
 
     if plot:
         plt.figure()
@@ -157,7 +161,7 @@ class Mean_value_decomposition():
             Attributes: trend, seasonal and resid.
          """
 
-    def __init__(self, X, n, period, t, noise_filter, f_th):
+    def __init__(self, X, n, period, t, noise_filter, f_th, CNN_filter):
         self.M = len(X)
         self.t = t
         self.period = period
@@ -167,6 +171,12 @@ class Mean_value_decomposition():
 
         #Trend component 
         self.trend[:] = X[:]
+
+        if CNN_filter:
+            model = load_model('CNN_filter.h5')
+            X_CNN = CNN_test.adjust_shape(X)
+            X_CNN, Y_CNN = CNN_test.make_timeseries_instances(X_CNN, X_CNN, 50)
+            self.trend = model.predict(X_CNN).reshape(-1)
 
         if noise_filter: # If it is a noise reduction operation
             for _ in range(0,n):

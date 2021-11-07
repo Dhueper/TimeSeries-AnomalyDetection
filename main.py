@@ -8,11 +8,11 @@ import ts_analysis
 
 #%% Time series definition
 # [t, X] = test_function.solar_power_sso(1) 
-# [t, X] = test_function.sin_function() 
+[t, X] = test_function.sin_function() 
 # [t, X] = test_function.square_function() 
 # [t, X] = test_function.cubic_function() 
 # [t, X] = test_function.test_sine()
-[t, X] = test_function.read("20211014.plt") 
+# [t, X] = test_function.read("20211014.plt") 
 
 #Original time series plot
 plt.figure()
@@ -32,8 +32,8 @@ df = pd.DataFrame(time_series, columns=["time", "X(t)", "id"])
 
 df.set_index("time", inplace=True) 
 
-#Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose' and 'mean_value'
-decomposition = ts_analysis.ts_decomposition(df, plot=True, method='STL', noise_filter=False)
+#Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose', 'mean_value' and 'CNN
+decomposition = ts_analysis.ts_decomposition(df, plot=True, method='CNN', noise_filter=False)
 
 plt.show()
 
