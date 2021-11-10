@@ -30,8 +30,10 @@ def ts_decomposition(df,**kwargs):
     else:
         plot = True
 
-    X = array(df[df.columns[0]])
-    t = array(df.index)
+    # X = array(df[df.columns[0]])
+    X = array(df['X(t)'])
+    # t = array(df.index)
+    t = array(df['time'] )
 
     # Analysis in frequency domain: FFT
     X_FFT = Fourier(t,X)
