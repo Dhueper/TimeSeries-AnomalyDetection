@@ -1,7 +1,7 @@
 from numpy import array, transpose, zeros, std, mean
 import pandas as pd
 from matplotlib import pyplot as plt
-from adtk.detector import ThresholdAD, LevelShiftAD
+from adtk.detector import ThresholdAD, LevelShiftAD, VolatilityShiftAD
 from adtk.visualization import plot
 from adtk.data import validate_series
 # from tsfresh import extract_features
@@ -50,16 +50,28 @@ df['resid'] = decomposition.resid
 plt.show()
 
 #%% Anomaly detection
+anomaly_tag ={'th':'marker', 'ls':'span', 'vol':'span'} 
+anomaly_color ={'th':'red', 'ls':'orange', 'vol':'green'}   
 
 #Whole analysis
 sigma_total = std(X)
 mean_total = mean(X)
 ts = validate_series(df['X(t)'])
-
+ #Threshold: 3*sigma 
 threshold_ad = ThresholdAD(high=mean_total + 3*sigma_total, low=mean_total - 3*sigma_total)
 th_anomalies = threshold_ad.detect(ts)
 
-plot(ts, anomaly=th_anomalies, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color='red', anomaly_tag="marker")
+ #Level shift 
+level_shift_ad = LevelShiftAD(c=6.0, side='both', window=20)
+ls_anomalies = level_shift_ad.fit_detect(ts)
+
+ #Volatility
+volatility_shift_ad = VolatilityShiftAD(c=12.0, side='positive', window=30)
+vol_anomalies = volatility_shift_ad.fit_detect(ts) 
+
+ts_dict ={'th':th_anomalies, 'ls':ls_anomalies, 'vol':vol_anomalies} 
+
+plot(ts, anomaly=ts_dict, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color=anomaly_color, anomaly_tag=anomaly_tag)
 
  
 #Trend analysis
@@ -72,34 +84,59 @@ threshold_ad = ThresholdAD(high=mean_t + 3*sigma_t, low=mean_t - 3*sigma_t)
 th_anomalies = threshold_ad.detect(trend)
 
  #Level shift 
-level_shift_ad = LevelShiftAD(c=4.0, side='both', window=5)
+# level_shift_ad = LevelShiftAD(c=4.0, side='both', window=20)
 ls_anomalies = level_shift_ad.fit_detect(trend)
 
-# trend_series = transpose(array([th_anomalies, ls_anomalies]))
-
-# trend_df = pd.DataFrame(trend_series, columns=["th", "ls"])
 trend_dict ={'th':th_anomalies, 'ls':ls_anomalies} 
+tag = {}
+color = {}
+for key in trend_dict.keys():
+    color[key]  = anomaly_color[key]
+    tag[key]  = anomaly_tag[key]
 
-plot(trend, anomaly=trend_dict, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color='red', anomaly_tag="marker")
+plot(trend, anomaly=trend_dict, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color=color, anomaly_tag=tag)
 
 #Seasonal analysis
 sigma_s = std(decomposition.seasonal)
 mean_s = mean(decomposition.seasonal)
 seasonal = validate_series(df['seasonal'])
+ #Threshold: 3*sigma 
 threshold_ad = ThresholdAD(high=mean_s + 3*sigma_s, low=mean_s - 3*sigma_s)
 th_anomalies = threshold_ad.detect(seasonal)
 
-plot(seasonal, anomaly=th_anomalies, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color='red', anomaly_tag="marker")
+ #Level shift 
+# level_shift_ad = LevelShiftAD(c=4.0, side='both', window=20)
+ls_anomalies = level_shift_ad.fit_detect(seasonal)
+
+seasonal_dict ={'th':th_anomalies, 'ls':ls_anomalies} 
+tag = {}
+color = {}
+for key in seasonal_dict.keys():
+    color[key]  = anomaly_color[key]
+    tag[key]  = anomaly_tag[key]
+
+plot(seasonal, anomaly=seasonal_dict, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color=color, anomaly_tag=tag)
 
 #Residual analysis
 sigma_r = std(decomposition.resid)
 mean_r = mean(decomposition.resid)
 resid = validate_series(df['resid'])
+ #Threshold: 3*sigma 
 threshold_ad = ThresholdAD(high=mean_r + 3*sigma_r, low=mean_r - 3*sigma_r)
 th_anomalies = threshold_ad.detect(resid)
 
-plot(resid, anomaly=th_anomalies, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color='red', anomaly_tag="marker")
+ #Volatility
+# volatility_shift_ad = VolatilityShiftAD(c=6.0, side='positive', window=30)
+vol_anomalies = volatility_shift_ad.fit_detect(resid)
 
+resid_dict ={'th':th_anomalies, 'vol':vol_anomalies}
+tag = {}
+color = {}
+for key in resid_dict.keys():
+    color[key]  = anomaly_color[key]
+    tag[key]  = anomaly_tag[key]
+
+plot(resid, anomaly=resid_dict, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color=color, anomaly_tag=tag)
 
 plt.show()
 
