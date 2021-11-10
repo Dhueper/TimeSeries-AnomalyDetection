@@ -1,7 +1,7 @@
 from numpy import array, transpose, zeros, std, mean
 import pandas as pd
 from matplotlib import pyplot as plt
-from adtk.detector import ThresholdAD
+from adtk.detector import ThresholdAD, LevelShiftAD
 from adtk.visualization import plot
 from adtk.data import validate_series
 # from tsfresh import extract_features
@@ -40,25 +40,68 @@ df["datetime"] = datetime
 df.set_index("datetime", inplace=True) 
 
 #Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose', 'mean_value' and 'CNN
-decomposition = ts_analysis.ts_decomposition(df, plot=False, method='mean_value', noise_filter=False)
+decomposition = ts_analysis.ts_decomposition(df, plot=True, method='mean_value', noise_filter=False)
 
 # Include decomposition in Dataframe 
 df['trend'] = decomposition.trend 
 df['seasonal'] = decomposition.seasonal
-df['residuals'] = decomposition.resid  
+df['resid'] = decomposition.resid  
 
 plt.show()
 
 #%% Anomaly detection
+
+#Whole analysis
+sigma_total = std(X)
+mean_total = mean(X)
+ts = validate_series(df['X(t)'])
+
+threshold_ad = ThresholdAD(high=mean_total + 3*sigma_total, low=mean_total - 3*sigma_total)
+th_anomalies = threshold_ad.detect(ts)
+
+plot(ts, anomaly=th_anomalies, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color='red', anomaly_tag="marker")
+
  
 #Trend analysis
 sigma_t = std(decomposition.trend)
 mean_t = mean(decomposition.trend)
-
-threshold_ad = ThresholdAD(high=mean_t + 3*sigma_t, low=mean_t - 3*sigma_t)
 trend = validate_series(df['trend'])
+
+ #Threshold: 3*sigma
+threshold_ad = ThresholdAD(high=mean_t + 3*sigma_t, low=mean_t - 3*sigma_t)
 th_anomalies = threshold_ad.detect(trend)
 
-plot(trend, anomaly=th_anomalies, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color='red', anomaly_tag="marker")
+ #Level shift 
+level_shift_ad = LevelShiftAD(c=4.0, side='both', window=5)
+ls_anomalies = level_shift_ad.fit_detect(trend)
+
+# trend_series = transpose(array([th_anomalies, ls_anomalies]))
+
+# trend_df = pd.DataFrame(trend_series, columns=["th", "ls"])
+trend_dict ={'th':th_anomalies, 'ls':ls_anomalies} 
+
+plot(trend, anomaly=trend_dict, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color='red', anomaly_tag="marker")
+
+#Seasonal analysis
+sigma_s = std(decomposition.seasonal)
+mean_s = mean(decomposition.seasonal)
+seasonal = validate_series(df['seasonal'])
+threshold_ad = ThresholdAD(high=mean_s + 3*sigma_s, low=mean_s - 3*sigma_s)
+th_anomalies = threshold_ad.detect(seasonal)
+
+plot(seasonal, anomaly=th_anomalies, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color='red', anomaly_tag="marker")
+
+#Residual analysis
+sigma_r = std(decomposition.resid)
+mean_r = mean(decomposition.resid)
+resid = validate_series(df['resid'])
+threshold_ad = ThresholdAD(high=mean_r + 3*sigma_r, low=mean_r - 3*sigma_r)
+th_anomalies = threshold_ad.detect(resid)
+
+plot(resid, anomaly=th_anomalies, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color='red', anomaly_tag="marker")
+
 
 plt.show()
+
+
+# %%
