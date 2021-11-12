@@ -10,9 +10,9 @@ import test_function
 import ts_analysis
 
 #%% Time series definition
-[t, X] = test_function.solar_power_sso(1) 
+# [t, X] = test_function.solar_power_sso(1) 
 # [t, X] = test_function.sin_function() 
-# [t, X] = test_function.square_function() 
+[t, X] = test_function.square_function() 
 # [t, X] = test_function.cubic_function() 
 # [t, X] = test_function.test_sine()
 # [t, X] = test_function.read("20211014.plt") 
@@ -125,11 +125,13 @@ resid = validate_series(df['resid'])
 threshold_ad = ThresholdAD(high=mean_r + 3*sigma_r, low=mean_r - 3*sigma_r)
 th_anomalies = threshold_ad.detect(resid)
 
+resid_dict ={'th':th_anomalies}
  #Volatility
 # volatility_shift_ad = VolatilityShiftAD(c=6.0, side='positive', window=30)
-vol_anomalies = volatility_shift_ad.fit_detect(resid)
+if max(abs(resid)) > 0:
+    vol_anomalies = volatility_shift_ad.fit_detect(resid)
+    resid_dict['vol'] = vol_anomalies
 
-resid_dict ={'th':th_anomalies, 'vol':vol_anomalies}
 tag = {}
 color = {}
 for key in resid_dict.keys():

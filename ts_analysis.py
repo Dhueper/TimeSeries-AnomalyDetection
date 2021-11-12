@@ -251,19 +251,20 @@ class Mean_value_decomposition():
 
         self.resid[:] = X[:] - self.trend[:] - self.seasonal #Residual component 
 
-        # Comparison of the magnitud orders
+        # Comparison of magnitude orders
         components = [self.trend, self.seasonal, self.resid] 
-        max_components = [max(self.trend), max(self.seasonal), max(self.resid)]
+        max_components = [max(abs(self.trend)), max(abs(self.seasonal)), max(abs(self.resid))]
         max_mean =[] 
 
         for j in range(0,3):
-            selected_index = (-components[j]).argsort()[:int(self.M*0.1)]
-            max_mean.append(mean(array([components[j][i] for i in selected_index])))
+            selected_index = (-abs(components[j])).argsort()[:int(self.M*0.1)]
+            max_mean.append(mean(array([abs(components[j][i]) for i in selected_index])))
 
         max_index = max_mean.index(max(max_mean))
 
         for i in range(0,3):
-            if i != max_index and max_components[i] < 0.005*max_mean[max_index]:
+            # if i != max_index and max_components[i] < 0.05*max_mean[max_index]:
+            if i != max_index and max_components[i] < 0.1*max_mean[max_index]:
                 components[max_index] = components[max_index] + components[i]
                 components[i] = zeros(self.M)
 

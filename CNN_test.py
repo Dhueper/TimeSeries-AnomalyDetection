@@ -5,6 +5,7 @@ Example of using Keras to implement a 1D convolutional neural network (CNN) for 
 import numpy as np
 from tensorflow import keras
 from matplotlib import pyplot as plt
+from tensorflow.keras.models import load_model
 
 
 def make_timeseries_regressor(window_size, filter_length, nb_input_series=1, nb_outputs=1, nb_filter=4):
@@ -188,10 +189,12 @@ def main(X,Y,X_test,Y_test):
     # plt.xlabel('t')
     # plt.ylabel('X(t)') 
 
-    model = evaluate_timeseries(X, Y, X_test, Y_test, window_size)
+    # model = evaluate_timeseries(X, Y, X_test, Y_test, window_size)
+
+    model = load_model('CNN_filter.h5')
 
     model.summary()
-    model.save('CNN_filter.h5')
+    # model.save('CNN_filter.h5')
 
     #Test the model 
     t = np.linspace(0,1,ts_length)
