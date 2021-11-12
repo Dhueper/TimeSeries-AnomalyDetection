@@ -12,10 +12,10 @@ import ts_analysis
 #%% Time series definition
 # [t, X] = test_function.solar_power_sso(1) 
 # [t, X] = test_function.sin_function() 
-[t, X] = test_function.square_function() 
+# [t, X] = test_function.square_function() 
 # [t, X] = test_function.cubic_function() 
 # [t, X] = test_function.test_sine()
-# [t, X] = test_function.read("20211014.plt") 
+[t, X] = test_function.read("20211014.plt") 
 
 #Original time series plot
 plt.figure()
@@ -40,7 +40,7 @@ df["datetime"] = datetime
 df.set_index("datetime", inplace=True) 
 
 #Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose', 'mean_value' and 'CNN
-decomposition = ts_analysis.ts_decomposition(df, plot=True, method='mean_value', noise_filter=False)
+decomposition = ts_analysis.ts_decomposition(df, plot=True, method='mean_value', noise_filter=True)
 
 # Include decomposition in Dataframe 
 df['trend'] = decomposition.trend 
@@ -62,11 +62,11 @@ threshold_ad = ThresholdAD(high=mean_total + 3*sigma_total, low=mean_total - 3*s
 th_anomalies = threshold_ad.detect(ts)
 
  #Level shift 
-level_shift_ad = LevelShiftAD(c=6.0, side='both', window=20)
+level_shift_ad = LevelShiftAD(c=3.5, side='both', window=20)
 ls_anomalies = level_shift_ad.fit_detect(ts)
 
  #Volatility
-volatility_shift_ad = VolatilityShiftAD(c=12.0, side='positive', window=30)
+volatility_shift_ad = VolatilityShiftAD(c=12.0, side='both', window=30)
 vol_anomalies = volatility_shift_ad.fit_detect(ts) 
 
 ts_dict ={'th':th_anomalies, 'ls':ls_anomalies, 'vol':vol_anomalies} 
@@ -84,7 +84,7 @@ threshold_ad = ThresholdAD(high=mean_t + 3*sigma_t, low=mean_t - 3*sigma_t)
 th_anomalies = threshold_ad.detect(trend)
 
  #Level shift 
-# level_shift_ad = LevelShiftAD(c=4.0, side='both', window=20)
+level_shift_ad = LevelShiftAD(c=4.0, side='both', window=20)
 ls_anomalies = level_shift_ad.fit_detect(trend)
 
 trend_dict ={'th':th_anomalies, 'ls':ls_anomalies} 
@@ -105,10 +105,17 @@ threshold_ad = ThresholdAD(high=mean_s + 3*sigma_s, low=mean_s - 3*sigma_s)
 th_anomalies = threshold_ad.detect(seasonal)
 
  #Level shift 
-# level_shift_ad = LevelShiftAD(c=4.0, side='both', window=20)
+level_shift_ad = LevelShiftAD(c=3.5, side='both', window=20)
 ls_anomalies = level_shift_ad.fit_detect(seasonal)
 
 seasonal_dict ={'th':th_anomalies, 'ls':ls_anomalies} 
+
+ #Volatility 
+volatility_shift_ad = VolatilityShiftAD(c=12.0, side='both', window=30)
+if max(abs(seasonal)) > 0:
+    vol_anomalies = volatility_shift_ad.fit_detect(seasonal)
+    seasonal_dict['vol'] = vol_anomalies
+
 tag = {}
 color = {}
 for key in seasonal_dict.keys():
@@ -127,7 +134,7 @@ th_anomalies = threshold_ad.detect(resid)
 
 resid_dict ={'th':th_anomalies}
  #Volatility
-# volatility_shift_ad = VolatilityShiftAD(c=6.0, side='positive', window=30)
+volatility_shift_ad = VolatilityShiftAD(c=5.0, side='both', window=30)
 if max(abs(resid)) > 0:
     vol_anomalies = volatility_shift_ad.fit_detect(resid)
     resid_dict['vol'] = vol_anomalies

@@ -67,7 +67,7 @@ def ts_decomposition(df,**kwargs):
         if kwargs["noise_filter"]:
             noise_filter = True
             n_noise_filter = max(round(period/10),1) #Times the recursive noise filter is applied 
-            noiseless = Mean_value_decomposition(X, n_noise_filter, period, t, True, X_FFT.f_th)
+            noiseless = Mean_value_decomposition(X, n_noise_filter, period, t, True, X_FFT.f_th, False)
             X[:] = noiseless.trend[:] + noiseless.seasonal[:]   
         else:
             noise_filter = False
@@ -117,6 +117,7 @@ def ts_decomposition(df,**kwargs):
         if noise_filter:
             plt.plot(t,noiseless.resid, linewidth=1)
             plt.title('Irregular variations + noise') 
+            decomposition.resid[:] = decomposition.resid[:] + noiseless.resid[:]   
 
     return decomposition
 
