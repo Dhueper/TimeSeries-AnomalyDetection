@@ -9,13 +9,14 @@ import ts_analysis
 import ts_anomalies
 
 #%% Time series definition
-[t, X] = test_function.solar_power_sso(1) 
+# [t, X] = test_function.solar_power_sso(1) 
 # [t, X] = test_function.sin_function() 
 # [t, X] = test_function.square_function() 
 # [t, X] = test_function.cubic_function() 
 # [t, X] = test_function.test_sine()
 # [t, X] = test_function.read("20211014.plt") 
 # [t, X] = test_function.load_npy("P-11.npy") 
+[t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
 
 #Original time series plot
 plt.figure()
@@ -40,18 +41,20 @@ df["datetime"] = datetime
 df.set_index("datetime", inplace=True) 
 
 #Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose', 'mean_value' and 'CNN
-# decomposition = ts_analysis.ts_decomposition(df, plot=True, method='mean_value', noise_filter=True)
+decomposition = ts_analysis.ts_decomposition(df, plot=True, method='mean_value', noise_filter=True)
 
 # Include decomposition in Dataframe 
-# df['trend'] = decomposition.trend 
-# df['seasonal'] = decomposition.seasonal
-# df['resid'] = decomposition.resid  
+df['trend'] = decomposition.trend 
+df['seasonal'] = decomposition.seasonal
+df['resid'] = decomposition.resid  
 
 plt.show()
 
 #%% Anomaly detection
 #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
-labels = ["ts"] 
+labels = ["ts", "trend", "seasonal", "resid"] 
 anomaly = ts_anomalies.Anomaly_detection(df, labels)
 
 plt.show()
+
+# %%

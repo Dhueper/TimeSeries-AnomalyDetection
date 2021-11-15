@@ -23,7 +23,7 @@ class Anomaly_detection():
                 self.trend_dict = self.detector(df['trend'])
 
             if tag == "seasonal":
-                self.analysis = ['th', 'ls'] 
+                self.analysis = ['th', 'ls', 'season'] 
                 self.sigma_th = 3
                 self.c_ls = 3.5
                 self.seasonal_dict = self.detector(df['seasonal'])
@@ -31,7 +31,7 @@ class Anomaly_detection():
             if tag == "resid":
                 self.analysis = ['th', 'vol'] 
                 self.sigma_th = 4
-                self.c_vol = 18.0
+                self.c_vol = 6.0
                 self.resid_dict = self.detector(df['resid'])
                 
 

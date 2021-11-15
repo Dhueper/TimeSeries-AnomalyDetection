@@ -132,6 +132,19 @@ def read(filename):
   file.close()
   return time, x
 
+def read_UCR(filename):
+    file = open(filename,'r')
+    N = len(file.readlines())
+    file.seek(0)
+    time = linspace(0,N,N)
+    x = zeros(N)
+
+    for i in range(0,N):
+        x[i] = float(file.readline())
+
+    file.close()
+    return time, x
+
 def load_npy(filename):
     Y = load(filename)
     X = Y[:,0]
@@ -141,7 +154,7 @@ def load_npy(filename):
 
 
 if __name__ == "__main__":
-    [t, X] = load_npy("P-11.npy")
+    [t, X] = read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
 
      #Plots
     plt.figure()
