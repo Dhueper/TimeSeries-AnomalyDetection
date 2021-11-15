@@ -55,10 +55,10 @@ def ts_decomposition(df,**kwargs):
             print("period=", period)
         except:
             warnings.warn("period argument must be of type integer, it has been automatically computed.", stacklevel=2)
-            period = round(1./(X_FFT.f_th*(t[1] - t[0])))# period estimation 
+            period = round(1./(max(X_FFT.f_th,10/(len(X)*(t[1] - t[0]))) * (t[1] - t[0])))# period estimation 
             print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
     else:
-        period = round(1./(X_FFT.f_th*(t[1] - t[0])))# period estimation 
+        period = round(1./(max(X_FFT.f_th,10/(len(X)*(t[1] - t[0]))) * (t[1] - t[0])))# period estimation 
         print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
 
 

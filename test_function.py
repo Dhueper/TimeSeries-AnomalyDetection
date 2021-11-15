@@ -1,4 +1,4 @@
-from numpy import pi, arccos, arcsin, sin, cos, sqrt, linspace, zeros, array, random
+from numpy import pi, arccos, arcsin, sin, cos, sqrt, linspace, zeros, array, random, load
 from matplotlib import pyplot as plt 
 
 def solar_power_sso(periods):
@@ -132,12 +132,21 @@ def read(filename):
   file.close()
   return time, x
 
+def load_npy(filename):
+    Y = load(filename)
+    X = Y[:,0]
+    t = linspace(0,len(X),len(X))
+
+    return [t, X]  
+
+
 if __name__ == "__main__":
-    [t, P_t] = cubic_function()
+    [t, X] = load_npy("P-11.npy")
+
      #Plots
     plt.figure()
-    plt.plot(t,P_t)
+    plt.plot(t,X)
     plt.xlabel('t')
-    plt.ylabel('Pt')
+    plt.ylabel('X (t)')
     plt.title('Total power in one orbit') 
     plt.show()
