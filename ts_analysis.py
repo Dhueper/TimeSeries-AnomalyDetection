@@ -122,7 +122,8 @@ def ts_decomposition(df,**kwargs):
         if noise_filter:
             plt.plot(t,noiseless.resid, linewidth=1)
             plt.title('Irregular variations + noise') 
-            decomposition.resid[:] = decomposition.resid[:] + noiseless.resid[:]   
+    if noise_filter:
+        decomposition.resid[:] = decomposition.resid[:] + noiseless.resid[:]   
 
     return decomposition
 
@@ -311,8 +312,11 @@ class Mean_value_decomposition():
 
         Y = zeros(self.M, dtype=float64)    
 
+        a1 = 1./(2*(alpha+1))
+        a0 = alpha/(alpha+1)
         for i in range(1,self.M-1):
-            Y[i] = (X[i-1] + 2*alpha*X[i] + X[i+1])/(2. * (alpha+1)) 
+            # Y[i] = (X[i-1] + 2*alpha*X[i] + X[i+1])/(2. * (alpha+1)) 
+            Y[i] = a1*X[i-1] + a0*X[i] + a1*X[i+1]
         
         if trend: # Trend decomposition 
 
