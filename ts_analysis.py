@@ -1,5 +1,5 @@
 import warnings
-from numpy import array, flip, zeros, var, append, float64, mean, sqrt, pi, cos, matmul, log10, exp
+from numpy import array, flip, zeros, var, append, float64, mean, sqrt, pi, cos, sin, matmul, log10, exp, linalg, diag
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq, ifft
 from scipy.optimize import fsolve, minimize
@@ -38,6 +38,9 @@ def ts_decomposition(df,**kwargs):
     # Analysis in frequency domain: FFT
     X_FFT = Fourier(t,X)
 
+    if X_FFT.f_th < 5/(len(X) * (t[1] - t[0])):
+        X_FFT.f_th = 5/(len(X) * (t[1] - t[0]))
+
     if plot:
         plt.figure()
         plt.plot(X_FFT.f[:len(X)//2], 2/len(X) * abs(X_FFT.Xf[0:len(X)//2]), '+')
@@ -55,10 +58,12 @@ def ts_decomposition(df,**kwargs):
             print("period=", period)
         except:
             warnings.warn("period argument must be of type integer, it has been automatically computed.", stacklevel=2)
-            period = round(1./(max(X_FFT.f_th,10/(len(X)*(t[1] - t[0]))) * (t[1] - t[0])))# period estimation 
+            period = round(1./(max(X_FFT.f_th,5/(len(X)*(t[1] - t[0]))) * (t[1] - t[0])))# period estimation 
+            period = min(period,round(len(X)/10))
             print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
     else:
-        period = round(1./(max(X_FFT.f_th,10/(len(X)*(t[1] - t[0]))) * (t[1] - t[0])))# period estimation 
+        period = round(1./(max(X_FFT.f_th,5/(len(X)*(t[1] - t[0]))) * (t[1] - t[0])))# period estimation 
+        period = min(period,round(len(X)/10))
         print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
 
 
@@ -185,7 +190,7 @@ class Mean_value_decomposition():
             for _ in range(0,n):
                 self.trend = self.mean_value_filter(self.trend, False) 
 
-        else: # If not a noise reduction operation 
+        else: # If not a noise reduction operation  
 
             #Equal variance algorithm for BC 
             for _ in range(0,int(n/40)):
@@ -209,7 +214,7 @@ class Mean_value_decomposition():
             #Linear BC 
             alpha = max(0,-cos(2*pi*f_th*(t[1]-t[0])))
             print('alpha=',alpha)
-            for i in range(0,int(19*n/20)):
+            for i in range(0,int(9*n/10)):
                 aux_trend = self.mean_value_filter(self.trend, False,alpha=alpha)
                 # if abs(var(aux_trend, dtype=float64) - var(self.trend, dtype=float64))/var(aux_trend, dtype=float64) < 10**(-9 - int(log10(var(aux_trend, dtype=float64)))):
                 if max(abs(aux_trend - self.trend))*var(aux_trend, dtype=float64) < (max(aux_trend)-min(aux_trend)) * 1e-7:
