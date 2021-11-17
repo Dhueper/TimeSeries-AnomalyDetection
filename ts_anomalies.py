@@ -29,6 +29,8 @@ class Anomaly_detection():
                     for i in range(int(len(ct_anomaly)/20),int(19*len(ct_anomaly)/20)):
                         if self.ts_dict[key][i] == True:
                             ct_anomaly[i] += 1
+                            if key == 'th':
+                                ct_anomaly[i] += 1
 
             if tag == "trend":
                 ct += 1
