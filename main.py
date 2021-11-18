@@ -13,13 +13,13 @@ import ts_analysis
 import ts_anomalies
 
 #%% Time series definition
-# [t, X] = test_function.solar_power_sso(1) 
+[t, X] = test_function.solar_power_sso(1) 
 # [t, X] = test_function.sin_function() 
 # [t, X] = test_function.square_function() 
 # [t, X] = test_function.cubic_function() 
 # [t, X] = test_function.test_sine()
 # [t, X] = test_function.read("20211014.plt") 
-[t, X] = test_function.load_npy("P-11.npy") 
+# [t, X] = test_function.load_npy("P-11.npy") 
 # [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
 
 #Original time series plot
@@ -56,7 +56,7 @@ df['resid'] = decomposition.resid
 #%% Anomaly detection
 #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
 labels = ["ts", "trend", "seasonal", "resid"] 
-anomaly = ts_anomalies.Anomaly_detection(df, labels, plot_anomalies=True)
+anomaly = ts_anomalies.Anomaly_detection(df, labels, plot_anomalies=False)
 anomaly_list = array([False for _ in range(0,len(X))])
 
 X_anomaly = []  
@@ -88,7 +88,7 @@ for i in range(int(len(X)/10),int(9*len(X)/10)):
         X_anomaly.append(X[i])
         t_anomaly.append(t[i])
 
-print(len(X), len(X_anomaly))
+print('Original length =',len(X), ', New length =', len(X_anomaly))
 
 # plt.figure()
 # plt.plot(t_anomaly,X_anomaly) 
@@ -123,16 +123,35 @@ plt.show()
 #%% Anomaly detection
 #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
 labels = ["ts", "trend", "seasonal", "resid"] 
-anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels)
+anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=False)
 
 plt.figure()
-plt.plot(df_anomaly['time'], df_anomaly['X(t)'] ,'b')
+plt.plot(df['time'], df['X(t)'] ,'b')
 
-plt.plot(df_anomaly['time'], anomaly.master_dict['minor'],'g.' )
-plt.plot(df_anomaly['time'], anomaly.master_dict['significant'],'m.' )
-plt.plot(df_anomaly['time'], anomaly.master_dict['major'],'r.' )
+# plt.plot(df_anomaly['time'], anomaly.master_dict['minor'],'g.' )
+# plt.plot(df_anomaly['time'], anomaly.master_dict['significant'],'m.' )
+# plt.plot(df_anomaly['time'], anomaly.master_dict['major'],'r.' )
+
+color ={'minor':'g', 'significant':'m', 'major':'r'}  
+for key in anomaly.master_dict.keys():
+    aux_t =[]
+    aux_anomaly =[]
+    ct = 0
+    for i in range(0, len(anomaly.master_dict[key])):
+        if anomaly.master_dict[key][i] == 1:
+            if ct == 1:
+                plt.axvspan(aux_t[-1] , df_anomaly['time'][i], facecolor=color[key], alpha=0.5, label=key)
+            aux_t.append(df_anomaly['time'][i])  
+            aux_anomaly.append(df_anomaly['X(t)'][i])
+            ct = 1
+        else:
+            ct = 0
+    # plt.plot(aux_t, aux_anomaly, color[key] )
+
+
+
+
 plt.legend(['Time series Anomalies', 'minor', 'significant', 'major'])
-
 
 plt.show()
 
