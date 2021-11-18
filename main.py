@@ -4,6 +4,8 @@ from numpy import array, transpose, zeros, std, mean, load, linspace
 import pandas as pd
 from matplotlib import pyplot as plt
 
+from adtk.data import validate_series
+
 # from tsfresh import extract_features
 
 import test_function
@@ -54,7 +56,7 @@ df['resid'] = decomposition.resid
 #%% Anomaly detection
 #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
 labels = ["ts", "trend", "seasonal", "resid"] 
-anomaly = ts_anomalies.Anomaly_detection(df, labels, plot_anomalies=False)
+anomaly = ts_anomalies.Anomaly_detection(df, labels, plot_anomalies=True)
 anomaly_list = array([False for _ in range(0,len(X))])
 
 X_anomaly = []  
@@ -113,6 +115,8 @@ df_anomaly['trend'] = decomposition.trend
 df_anomaly['seasonal'] = decomposition.seasonal
 df_anomaly['resid'] = decomposition.resid  
 
+df_anomaly = validate_series(df_anomaly)
+
 
 plt.show()
 
@@ -122,11 +126,11 @@ labels = ["ts", "trend", "seasonal", "resid"]
 anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels)
 
 plt.figure()
-plt.plot(t_anomaly, X_anomaly,'b')
+plt.plot(df_anomaly['time'], df_anomaly['X(t)'] ,'b')
 
-plt.plot(t_anomaly, anomaly.master_dict['minor'],'g.' )
-plt.plot(t_anomaly, anomaly.master_dict['significant'],'m.' )
-plt.plot(t_anomaly, anomaly.master_dict['major'],'r.' )
+plt.plot(df_anomaly['time'], anomaly.master_dict['minor'],'g.' )
+plt.plot(df_anomaly['time'], anomaly.master_dict['significant'],'m.' )
+plt.plot(df_anomaly['time'], anomaly.master_dict['major'],'r.' )
 plt.legend(['Time series Anomalies', 'minor', 'significant', 'major'])
 
 

@@ -24,6 +24,7 @@ class Anomaly_detection():
                 self.c_ls = 3.5
                 self.c_vol = 18.0
                 self.ts_dict = self.detector(df['X(t)'])
+                ct_anomaly = zeros(len(self.ts_dict['th']))
                 for key in self.analysis:
                     # aux0  = logical_or(aux0, self.ts_dict[key])
                     for i in range(int(len(ct_anomaly)/20),int(19*len(ct_anomaly)/20)):
@@ -48,7 +49,7 @@ class Anomaly_detection():
                 ct += 1
                 self.analysis = ['th', 'ls'] 
                 self.sigma_th = 3
-                self.c_ls = 2
+                self.c_ls = 3.5
                 self.seasonal_dict = self.detector(df['seasonal'])
 
                 for key in self.analysis:
