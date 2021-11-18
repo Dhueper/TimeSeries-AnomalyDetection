@@ -13,13 +13,13 @@ import ts_analysis
 import ts_anomalies
 
 #%% Time series definition
-[t, X] = test_function.solar_power_sso(1) 
+# [t, X] = test_function.solar_power_sso(1) 
 # [t, X] = test_function.sin_function() 
 # [t, X] = test_function.square_function() 
 # [t, X] = test_function.cubic_function() 
 # [t, X] = test_function.test_sine()
 # [t, X] = test_function.read("20211014.plt") 
-# [t, X] = test_function.load_npy("P-11.npy") 
+[t, X] = test_function.load_npy("P-11.npy") 
 # [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
 
 #Original time series plot
@@ -137,21 +137,28 @@ for key in anomaly.master_dict.keys():
     aux_t =[]
     aux_anomaly =[]
     ct = 0
+
     for i in range(0, len(anomaly.master_dict[key])):
         if anomaly.master_dict[key][i] == 1:
-            if ct == 1:
-                plt.axvspan(aux_t[-1] , df_anomaly['time'][i], facecolor=color[key], alpha=0.5, label=key)
+            if ct == 1 and key == 'significant':
+                plt.axvspan(df_anomaly['time'][i-10] , df_anomaly['time'][i+10], facecolor=color[key], alpha=0.5)
             aux_t.append(df_anomaly['time'][i])  
             aux_anomaly.append(df_anomaly['X(t)'][i])
             ct = 1
         else:
+            if ct == 1 and key == 'significant':
+                plt.axvspan(df_anomaly['time'][i-5] , df_anomaly['time'][i+5], facecolor=color[key], alpha=0.5)
             ct = 0
-    # plt.plot(aux_t, aux_anomaly, color[key] )
+    
+    if key == 'major':
+        plt.plot(aux_t, aux_anomaly, 'ro')
+    elif key == 'minor':
+        plt.plot(aux_t, aux_anomaly, '.g')
 
 
 
 
-plt.legend(['Time series Anomalies', 'minor', 'significant', 'major'])
+plt.legend(['Time series Anomalies', 'major', 'minor', 'significant'])
 
 plt.show()
 
