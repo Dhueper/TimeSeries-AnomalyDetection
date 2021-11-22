@@ -1,10 +1,20 @@
 import warnings
-from numpy import array, flip, zeros, var, append, float64, mean, sqrt, pi, cos, sin, matmul, log10, exp, linalg, diag
+import sys
+import os
+
+from numpy import array, flip, zeros, var, append, float64, mean, sqrt, pi, cos, sin, matmul, log10, exp, linalg, diag, asfortranarray
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq, ifft
 from scipy.optimize import fsolve, minimize
 from matplotlib import pyplot as plt
 from tensorflow.keras.models import load_model
+
+try:
+    sys.path.insert(1, '/'.join(os.path.dirname(os.path.abspath(__file__)).split('/'))+'/fortran_interface')
+    import fortran_ts
+except:
+    sys.path.insert(1, '/'.join(os.path.dirname(os.path.abspath(__file__)).split('\\'))+'/fortran_interface')
+    import fortran_ts
 
 import CNN_test
 
@@ -199,6 +209,7 @@ class Mean_value_decomposition():
                 self.trend = self.mean_value_filter(self.trend, True, alpha=2)
 
 
+
             #Linear interpolation to correct end-point desviations 
             k = min(4*period, int(len(X)/4))
             d_trend = zeros(k-int(k/2)+1)
@@ -215,15 +226,16 @@ class Mean_value_decomposition():
             #Linear BC 
             alpha = max(0,-cos(2*pi*f_th*(t[1]-t[0])))
             print('alpha=',alpha)
-            for i in range(0,int(9*n/10)):
-                aux_trend = self.mean_value_filter(self.trend, False,alpha=alpha)
-                # if abs(var(aux_trend, dtype=float64) - var(self.trend, dtype=float64))/var(aux_trend, dtype=float64) < 10**(-9 - int(log10(var(aux_trend, dtype=float64)))):
-                if max(abs(aux_trend - self.trend))*var(aux_trend, dtype=float64) < (max(aux_trend)-min(aux_trend)) * 1e-7:
-                    self.trend[:] = aux_trend[:] 
-                    print('n_max=',i)
-                    break
-                else:
-                    self.trend[:] = aux_trend[:] 
+            self.trend = fortran_ts.time_series.mvf_linearbc(asfortranarray(self.trend), alpha, n_iter=int(n/2))
+            # for i in range(0,int(9*n/10)):
+            #     aux_trend = self.mean_value_filter(self.trend, False,alpha=alpha)
+            #     # if abs(var(aux_trend, dtype=float64) - var(self.trend, dtype=float64))/var(aux_trend, dtype=float64) < 10**(-9 - int(log10(var(aux_trend, dtype=float64)))):
+            #     if max(abs(aux_trend - self.trend))*var(aux_trend, dtype=float64) < (max(aux_trend)-min(aux_trend)) * 1e-7:
+            #         self.trend[:] = aux_trend[:] 
+            #         print('n_max=',i)
+            #         break
+            #     else:
+            #         self.trend[:] = aux_trend[:] 
 
             self.seasonal[:] = X[:] - self.trend[:] #Detrended time series 
             if period > 20:
@@ -285,7 +297,7 @@ class Mean_value_decomposition():
 
             X (numpy.array), time series;
             trend (bool), True if the trend is to be computed;
-            alpha (integer), order of the filter.
+            alpha (float), order of the filter.
 
             Returns: Y (numpy.array), filtered time series.
         """
@@ -310,13 +322,15 @@ class Mean_value_decomposition():
             delta_abs = abs(delta_var) + abs(delta_d2Y)
             return delta_abs
 
-        Y = zeros(self.M, dtype=float64)    
+        # Y = zeros(self.M, dtype=float64)    
 
-        a1 = 1./(2*(alpha+1))
-        a0 = alpha/(alpha+1)
-        for i in range(1,self.M-1):
-            # Y[i] = (X[i-1] + 2*alpha*X[i] + X[i+1])/(2. * (alpha+1)) 
-            Y[i] = a1*X[i-1] + a0*X[i] + a1*X[i+1]
+        # a1 = 1./(2*(alpha+1))
+        # a0 = alpha/(alpha+1)
+        # for i in range(1,self.M-1):
+        #     # Y[i] = (X[i-1] + 2*alpha*X[i] + X[i+1])/(2. * (alpha+1)) 
+        #     Y[i] = a1*X[i-1] + a0*X[i] + a1*X[i+1]
+
+        Y = fortran_ts.time_series.mvf(asfortranarray(X), alpha)
         
         if trend: # Trend decomposition 
 
