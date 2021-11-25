@@ -5,19 +5,31 @@ python module fortran_tsf ! in
     interface  ! in :fortran_tsf
         module time_series_py ! in :fortran_tsf:/home/david/Documentos/Matemáticas_MUSE/Ampliación_mates1/fparser_exec/dist/__Interface__/Interface.f90
             use time_series
-            subroutine mvf_py(x,alpha,mvf_pyu,n_x) ! in :fortran_tsf:/home/david/Documentos/Matemáticas_MUSE/Ampliación_mates1/fparser_exec/dist/__Interface__/Interface.f90:time_series_py
+            subroutine mvf_py(x,alpha,mvf_pye,n_x) ! in :fortran_tsf:/home/david/Documentos/Matemáticas_MUSE/Ampliación_mates1/fparser_exec/dist/__Interface__/Interface.f90:time_series_py
                 real(kind=8) dimension(n_x),intent(in) :: x
                 real(kind=8) intent(in) :: alpha
-                real(kind=8) dimension(size(x)),intent(out),depend(x) :: mvf_pyu
+                real(kind=8) dimension(size(x)),intent(out),depend(x) :: mvf_pye
                 integer, optional,intent(in),check(len(x)>=n_x),depend(x) :: n_x=len(x)
             end subroutine mvf_py
-            subroutine mvf_linearbc_py(x,alpha,n_iter,mvf_linearbc_pyd,n_x) ! in :fortran_tsf:/home/david/Documentos/Matemáticas_MUSE/Ampliación_mates1/fparser_exec/dist/__Interface__/Interface.f90:time_series_py
+            subroutine mvf_linearbc_py(x,alpha,n_iter,mvf_linearbc_pyj,n_x) ! in :fortran_tsf:/home/david/Documentos/Matemáticas_MUSE/Ampliación_mates1/fparser_exec/dist/__Interface__/Interface.f90:time_series_py
                 real(kind=8) dimension(n_x),intent(in) :: x
                 real(kind=8) intent(in) :: alpha
                 integer intent(in) :: n_iter
-                real(kind=8) dimension(size(x)),intent(out),depend(x) :: mvf_linearbc_pyd
+                real(kind=8) dimension(size(x)),intent(out),depend(x) :: mvf_linearbc_pyj
                 integer, optional,intent(in),check(len(x)>=n_x),depend(x) :: n_x=len(x)
             end subroutine mvf_linearbc_py
+            subroutine mvf_optimbc_py(x,alpha,n_iter,mvf_optimbc_pyb,n_x) ! in :fortran_tsf:/home/david/Documentos/Matemáticas_MUSE/Ampliación_mates1/fparser_exec/dist/__Interface__/Interface.f90:time_series_py
+                real(kind=8) dimension(n_x),intent(in) :: x
+                real(kind=8) intent(in) :: alpha
+                integer intent(in) :: n_iter
+                real(kind=8) dimension(size(x)),intent(out),depend(x) :: mvf_optimbc_pyb
+                integer, optional,intent(in),check(len(x)>=n_x),depend(x) :: n_x=len(x)
+            end subroutine mvf_optimbc_py
+            subroutine f_py(xv,f_pyj,n_xv) ! in :fortran_tsf:/home/david/Documentos/Matemáticas_MUSE/Ampliación_mates1/fparser_exec/dist/__Interface__/Interface.f90:time_series_py
+                real(kind=8) dimension(n_xv),intent(in) :: xv
+                real(kind=8) dimension(size(xv)),intent(out),depend(xv) :: f_pyj
+                integer, optional,intent(in),check(len(xv)>=n_xv),depend(xv) :: n_xv=len(xv)
+            end subroutine f_py
         end module time_series_py
     end interface 
 end python module fortran_tsf

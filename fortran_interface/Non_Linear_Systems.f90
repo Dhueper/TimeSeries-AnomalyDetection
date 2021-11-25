@@ -4,12 +4,12 @@ module Non_Linear_Systems
  use Linear_systems
   
 implicit none 
-private 
-public ::       & 
-  Newton,  & ! It solves a vectorial system F(x) = 0
-  Newtonc    ! It solves a vectorial system G(x) = 0
-             ! with M implicit equations < N unknowns
-             ! e.g.  G1 = x1 - x2 (implicit) with x1 = 1 (explicit)
+! private 
+! public ::       & 
+!   Newton,  & ! It solves a vectorial system F(x) = 0
+!   Newtonc    ! It solves a vectorial system G(x) = 0
+!              ! with M implicit equations < N unknowns
+!              ! e.g.  G1 = x1 - x2 (implicit) with x1 = 1 (explicit)
 
 contains 
 
@@ -27,7 +27,7 @@ subroutine Newton (F, x0)
  
    real ::   Dx( size(x0) ), b(size(x0)), eps
    real :: J( size(x0), size(x0) )
-   integer :: iteration, itmax = 1000 
+   integer :: iteration, itmax = 100
    
    integer :: N 
 
@@ -37,7 +37,7 @@ subroutine Newton (F, x0)
    iteration = 0 
    eps = 1 
  
-   do while ( eps > 1d-8 .and. iteration <= itmax )
+   do while ( eps > 1d-2 .and. iteration <= itmax )
     
       iteration = iteration + 1 
       J = Jacobian( F, x0 ) 

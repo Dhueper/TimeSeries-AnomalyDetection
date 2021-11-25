@@ -69,11 +69,11 @@ def ts_decomposition(df,**kwargs):
         except:
             warnings.warn("period argument must be of type integer, it has been automatically computed.", stacklevel=2)
             period = round(1./(max(X_FFT.f_th,5/(len(X)*(t[1] - t[0]))) * (t[1] - t[0])))# period estimation 
-            period = min(period,round(len(X)/10))
+            period = min(period,100)
             print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
     else:
         period = round(1./(max(X_FFT.f_th,5/(len(X)*(t[1] - t[0]))) * (t[1] - t[0])))# period estimation 
-        period = min(period,round(len(X)/10))
+        period = min(period,100)
         print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
 
 
@@ -207,8 +207,7 @@ class Mean_value_decomposition():
             for _ in range(0,int(n/40)):
                 self.trend = self.mean_value_filter(self.trend, True, alpha=1)
                 self.trend = self.mean_value_filter(self.trend, True, alpha=2)
-
-
+            # self.trend = fortran_ts.time_series.mvf_optimbc(asfortranarray(self.trend), alpha=1, n_iter=int(n/20))
 
             #Linear interpolation to correct end-point desviations 
             k = min(4*period, int(len(X)/4))
@@ -236,6 +235,7 @@ class Mean_value_decomposition():
             #         break
             #     else:
             #         self.trend[:] = aux_trend[:] 
+
 
             self.seasonal[:] = X[:] - self.trend[:] #Detrended time series 
             if period > 20:
