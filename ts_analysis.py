@@ -2,7 +2,7 @@ import warnings
 import sys
 import os
 
-from numpy import array, flip, zeros, var, append, float64, mean, sqrt, pi, cos, sin, matmul, log10, exp, linalg, diag, asfortranarray
+from numpy import array, flip, zeros, var, append, float64, mean, sqrt, pi, cos, sin, matmul, log10, exp, linalg, diag, asfortranarray, sum, argmin
 from statsmodels.tsa.seasonal import seasonal_decompose, STL
 from scipy.fft import fft, fftfreq, ifft
 from scipy.optimize import fsolve, minimize
@@ -58,23 +58,27 @@ def ts_decomposition(df,**kwargs):
         plt.ylabel('FFT')
         plt.title('FFT time series') 
 
+    compute_period = True
     if "period" in kwargs:
         try:
             if type(kwargs["period"]) == int:
                 period = kwargs["period"]
+                X_FFT.f_th = 1. / ((period-1) * (t[1]-t[0]))
             else:
                 period = int(kwargs["period"])
+                X_FFT.f_th = 1. / ((period-1) * (t[1]-t[0]))
                 warnings.warn("period argument must be of type integer, it has been rounded by default.", stacklevel=2)
             print("period=", period)
+            compute_period = False
         except:
             warnings.warn("period argument must be of type integer, it has been automatically computed.", stacklevel=2)
             period = round(1./(max(X_FFT.f_th,5/(len(X)*(t[1] - t[0]))) * (t[1] - t[0])))# period estimation 
             period = min(period,100)
-            print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
+            # print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
     else:
         period = round(1./(max(X_FFT.f_th,5/(len(X)*(t[1] - t[0]))) * (t[1] - t[0])))# period estimation 
         period = min(period,100)
-        print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
+        # print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
 
 
     #Noise reduction
@@ -93,6 +97,12 @@ def ts_decomposition(df,**kwargs):
     if noise_filter and period < 8:
         warnings.warn("the seasonal period is very short and the noise filter may significantly modify the result."+
          " It is recommended to switch 'noise_filter' to False.", stacklevel=2)
+
+    #New period estimation
+    if compute_period:
+        period = period_est(t,X) 
+        X_FFT.f_th = 1. / ((period-1) * (t[1]-t[0]))
+        print("period=", period, ", f=", X_FFT.f_th, " [Hz]")
 
          
     # Time series decomposition
@@ -135,7 +145,36 @@ def ts_decomposition(df,**kwargs):
     if noise_filter:
         decomposition.resid[:] = decomposition.resid[:] + noiseless.resid[:]   
 
-    return decomposition
+    return decomposition, period
+
+def period_est(t, xs):
+    Ns = len(t)
+    delta_t = t[1] - t[0]  
+
+    dxs = zeros(Ns)
+    dxs[0] = (xs[1] - xs[0])/delta_t
+    dxs[Ns-1] = (xs[Ns-1] - xs[Ns-2])/delta_t
+    for i in range(1,Ns-1):
+        dxs[i] = (xs[i+1] - xs[i-1])/(2*delta_t) 
+
+    N_vec = array([i for i in range(8,Ns//2)])
+    E = [] 
+    for N in N_vec: 
+
+        #First N samples 
+        x = xs[0:N] 
+        dx = dxs[0:N] 
+
+        #Spectral domain
+        xf = fft(x, N)
+        f = fftfreq(N,delta_t)  
+
+        dx_spec = ifft(2*pi*f*1j*xf, N).real 
+
+        #Error 
+        E.append(sqrt(sum((dx - dx_spec)**2.) / N))      
+
+    return N_vec[argmin(E)] 
 
 
 class Fourier():

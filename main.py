@@ -52,7 +52,7 @@ def main(filename, plot_figures, begin, end):
     #%% Decomposition STL
     t0 = time.time()
     #Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose', 'mean_value' and 'CNN
-    decomposition = ts_analysis.ts_decomposition(df, plot=False, method='STL', noise_filter=True)
+    decomposition, period = ts_analysis.ts_decomposition(df, plot=False, method='STL', noise_filter=True)
     tf = time.time()
     print('Time STL:', tf-t0)
 
@@ -114,7 +114,7 @@ def main(filename, plot_figures, begin, end):
 
     t0 = time.time()
     #Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose', 'mean_value' and 'CNN
-    decomposition = ts_analysis.ts_decomposition(df_anomaly, plot=False, method='mean_value', noise_filter=True)
+    decomposition, period = ts_analysis.ts_decomposition(df_anomaly, plot=True, method='mean_value', noise_filter=True, period=period)
     tf = time.time()
     print('Time MVD:', tf-t0)
 
@@ -129,7 +129,7 @@ def main(filename, plot_figures, begin, end):
     #%% Anomaly detection
     #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
     labels = ["ts", "trend", "seasonal", "resid"] 
-    anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=False)
+    anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=True)
 
     plt.figure()
     plt.plot(df['time'], df['X(t)'] ,'b')
@@ -146,14 +146,14 @@ def main(filename, plot_figures, begin, end):
 
         for i in range(0, len(anomaly.master_dict[key])):
             if anomaly.master_dict[key][i] == 1:
-                if ct == 1 and key == 'significant' and plot_figures:
-                    plt.axvspan(df_anomaly['time'][i-10] , df_anomaly['time'][i+10], facecolor=color[key], alpha=0.5)
+                # if ct == 1 and key == 'significant' and plot_figures:
+                #     plt.axvspan(df_anomaly['time'][i-10] , df_anomaly['time'][i+10], facecolor=color[key], alpha=0.5)
                 aux_t.append(df_anomaly['time'][i])  
                 aux_anomaly.append(df_anomaly['X(t)'][i])
                 ct = 1
             else:
-                if ct == 1 and key == 'significant' and plot_figures:
-                    plt.axvspan(df_anomaly['time'][i-5] , df_anomaly['time'][i+5], facecolor=color[key], alpha=0.5)
+                # if ct == 1 and key == 'significant' and plot_figures:
+                    # plt.axvspan(df_anomaly['time'][i-5] , df_anomaly['time'][i+5], facecolor=color[key], alpha=0.5)
                 ct = 0
         
         if key == 'major':
@@ -182,37 +182,39 @@ def main(filename, plot_figures, begin, end):
 
 
 if __name__ == "__main__":
-    path = os.getcwd() + '/UCR_Anomaly_FullData'
-    dir_list = os.listdir(path)
-    f = open('results.txt', 'w')
-    f.write('--- Major = 3, significant = 2, minor = 1, not found = 0--- \n')
-    f.write('\n')
-    val_ct = 0
-    ct = 0
-    major_ct = 0
-    significant_ct = 0
-    minor_ct = 0
-    for dir_file in dir_list:
-        ct += 1
-        split = dir_file.split('_')
-        begin = int(split[-2])
-        end = int(split[-1].split('.')[0])  
-        print('Anomaly' + str(ct)+':',begin,'-',end)
+    # path = os.getcwd() + '/UCR_Anomaly_FullData'
+    # dir_list = os.listdir(path)
+    # f = open('results.txt', 'w')
+    # f.write('--- Major = 3, significant = 2, minor = 1, not found = 0--- \n')
+    # f.write('\n')
+    # val_ct = 0
+    # ct = 0
+    # major_ct = 0
+    # significant_ct = 0
+    # minor_ct = 0
+    # for dir_file in dir_list:
+    #     ct += 1
+    #     split = dir_file.split('_')
+    #     begin = int(split[-2])
+    #     end = int(split[-1].split('.')[0])  
+    #     print('Anomaly' + str(ct)+':',begin,'-',end)
 
-        value = main(path + '/' + dir_file, False, begin, end)
-        val_ct += value
-        if value == 3:
-            major_ct += 1
-        elif value == 2:
-            significant_ct += 1
-        elif value == 1:
-            minor_ct += 1
-        print('Value:', value, '\n')
-        f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + '\n')
+    #     value = main(path + '/' + dir_file, False, begin, end)
+    #     val_ct += value
+    #     if value == 3:
+    #         major_ct += 1
+    #     elif value == 2:
+    #         significant_ct += 1
+    #     elif value == 1:
+    #         minor_ct += 1
+    #     print('Value:', value, '\n')
+    #     f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + '\n')
 
-    print('Result:', val_ct, '/', 3*ct)
-    f.write('\n')
-    f.write('Result: ' + str(val_ct) + '/' + str(3*ct))
-    f.write('\n')
-    f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
-    f.close()
+    # print('Result:', val_ct, '/', 3*ct)
+    # f.write('\n')
+    # f.write('Result: ' + str(val_ct) + '/' + str(3*ct))
+    # f.write('\n')
+    # f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
+    # f.close()
+
+    value = main("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt", True, 27862, 27932)
