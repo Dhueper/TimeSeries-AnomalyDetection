@@ -157,7 +157,7 @@ def period_est(t, xs):
     for i in range(1,Ns-1):
         dxs[i] = (xs[i+1] - xs[i-1])/(2*delta_t) 
 
-    N_vec = array([i for i in range(8,Ns//2)])
+    N_vec = array([i for i in range(8,128)])
     E = [] 
     for N in N_vec: 
 
