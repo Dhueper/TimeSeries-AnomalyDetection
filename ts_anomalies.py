@@ -1,8 +1,11 @@
-from adtk.detector import ThresholdAD, LevelShiftAD, VolatilityShiftAD
+from adtk.detector import ThresholdAD, LevelShiftAD, VolatilityShiftAD, QuantileAD
+from adtk.transformer import CustomizedTransformerHD
+from adtk.pipe import Pipeline
 from adtk.visualization import plot
 from adtk.data import validate_series
 
-from numpy import mean, std, array, logical_and, logical_or, logical_xor, zeros, where
+from numpy import mean, std, array, logical_and, logical_or, logical_xor, zeros, where, angle, log, exp, convolve, ones
+from scipy.fft import fft, fftfreq, ifft
 
 class Anomaly_detection():
     def __init__(self, df, labels, plot_anomalies=True):
@@ -33,6 +36,19 @@ class Anomaly_detection():
                             if key == 'th':
                                 ct_anomaly[i] += 1
 
+            if tag == "sr":
+                ct += 1
+                self.analysis = ['th', 'ls', 'vol'] 
+                self.sigma_th = 3
+                self.c_ls = 3.5
+                self.c_vol = 18.0
+                self.sr_dict = self.detector(df['sr'])
+                for key in self.analysis:
+                    # aux0  = logical_or(aux0, self.ts_dict[key])
+                    for i in range(int(len(ct_anomaly)/20),int(19*len(ct_anomaly)/20)):
+                        if self.sr_dict[key][i] == True:
+                            ct_anomaly[i] += 1
+
             if tag == "trend":
                 ct += 1
                 self.analysis = ['th', 'ls'] 
@@ -43,7 +59,7 @@ class Anomaly_detection():
                     # aux1  = logical_or(aux1, self.trend_dict[key])
                     for i in range(int(len(ct_anomaly)/20),int(19*len(ct_anomaly)/20)):
                         if self.trend_dict[key][i] == True:
-                            ct_anomaly[i] += 3
+                            ct_anomaly[i] += 2
 
             if tag == "seasonal":
                 ct += 1
@@ -71,24 +87,26 @@ class Anomaly_detection():
                         if self.resid_dict[key][i] == True:
                             ct_anomaly[i] += 1
 
-            if ct == 4:
+            if ct >= 4:
                 # logical_aux = logical_or(logical_or(logical_and(aux2, aux3), logical_and(aux0, aux2)), logical_and(aux0, aux3))
                 # self.master_dict['major']  = list(logical_or(aux1, logical_aux))
                 # self.master_dict['minor']  = list(logical_or(aux1, logical_or(aux2, aux3)))
 
                 #Major anomaly 
-                ct_max_loc = where(ct_anomaly == max(ct_anomaly))
-                self.master_dict['major'] = zeros(len(ct_anomaly))
-                for item in ct_max_loc:
-                    self.master_dict['major'][item]  =  1
-                    ct_anomaly[item] = 0 
+                if max(ct_anomaly) > 0:
+                    ct_max_loc = where(ct_anomaly == max(ct_anomaly))
+                    self.master_dict['major'] = zeros(len(ct_anomaly))
+                    for item in ct_max_loc:
+                        self.master_dict['major'][item]  =  1
+                        ct_anomaly[item] = 0 
 
                 #Significant anomaly
-                self.master_dict['significant'] = zeros(len(ct_anomaly))
-                ct_max_loc = where(ct_anomaly == max(ct_anomaly))
-                for item in ct_max_loc:
-                    self.master_dict['significant'][item]  =  1
-                    ct_anomaly[item] = 0 
+                if max(ct_anomaly) > 0:
+                    self.master_dict['significant'] = zeros(len(ct_anomaly))
+                    ct_max_loc = where(ct_anomaly == max(ct_anomaly))
+                    for item in ct_max_loc:
+                        self.master_dict['significant'][item]  =  1
+                        ct_anomaly[item] = 0 
 
                 #Minor anomaly
                 self.master_dict['minor'] = zeros(len(ct_anomaly))
@@ -137,6 +155,35 @@ class Anomaly_detection():
             plot(ts, anomaly=ts_dict, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color=color, anomaly_tag=tag)
 
         return ts_dict
+
+    
+
+if __name__ == "__main__":
+    import test_function
+    from matplotlib import pyplot as plt
+    [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt")
+    # [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt") 
+
+    # t = t[27000:29000] 
+    # X = X[27000:29000] 
+
+    for i in range(1,10):
+        for j in range(1,len(X)-1):
+            X[j] = (X[j-1] + 2*X[j] + X[j+1])/4    
+
+    X_FFT = fft(X)
+    A = abs(X_FFT)
+    P = angle(X_FFT)
+    L = log(A)
+    q = 3
+    hq = ones(q)/q**2
+    R = L - convolve(L,hq, 'same')
+    S = abs(ifft(exp(R + 1j*P))**2)
+
+    plt.figure()
+    plt.plot(t, S, 'b')
+    # plt.plot(t, X, 'r')
+    plt.show()
 
         
             

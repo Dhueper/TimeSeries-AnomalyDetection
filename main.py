@@ -1,7 +1,8 @@
 import time
 import os
 
-from numpy import array, transpose, zeros, std, mean, load, linspace
+from numpy import array, transpose, zeros, std, mean, load, linspace, log, exp, ones, angle, convolve
+from scipy.fft import fft, ifft
 import pandas as pd
 from matplotlib import pyplot as plt
 
@@ -61,10 +62,14 @@ def main(filename, plot_figures, begin, end):
     df['seasonal'] = decomposition.seasonal
     df['resid'] = decomposition.resid  
 
+    #Spectral residual
+    df['sr'] = spectral_residual(X)   
+
     #%% Anomaly detection
     #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
-    labels = ["ts", "trend", "seasonal", "resid"] 
+    labels = ["ts", "trend", "seasonal", "resid", "sr"] 
     anomaly = ts_anomalies.Anomaly_detection(df, labels, plot_anomalies=False)
+    plt.show()
     anomaly_list = array([False for _ in range(0,len(X))])
 
     X_anomaly = []  
@@ -114,7 +119,7 @@ def main(filename, plot_figures, begin, end):
 
     t0 = time.time()
     #Decomposition of the time series. Available methods: 'STL', 'seasonal_decompose', 'mean_value' and 'CNN
-    decomposition, period = ts_analysis.ts_decomposition(df_anomaly, plot=True, method='mean_value', noise_filter=True, period=period)
+    decomposition, period = ts_analysis.ts_decomposition(df_anomaly, plot=False, method='mean_value', noise_filter=True, period=int(period))
     tf = time.time()
     print('Time MVD:', tf-t0)
 
@@ -123,12 +128,15 @@ def main(filename, plot_figures, begin, end):
     df_anomaly['seasonal'] = decomposition.seasonal
     df_anomaly['resid'] = decomposition.resid  
 
+    #Spectral residual
+    df_anomaly['sr'] = spectral_residual(X_anomaly) 
+
     df_anomaly = validate_series(df_anomaly)
 
 
     #%% Anomaly detection
     #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
-    labels = ["ts", "trend", "seasonal", "resid"] 
+    labels = ["ts", "trend", "seasonal", "resid", "sr"] 
     anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=True)
 
     plt.figure()
@@ -153,7 +161,7 @@ def main(filename, plot_figures, begin, end):
                 ct = 1
             else:
                 # if ct == 1 and key == 'significant' and plot_figures:
-                    # plt.axvspan(df_anomaly['time'][i-5] , df_anomaly['time'][i+5], facecolor=color[key], alpha=0.5)
+                #     plt.axvspan(df_anomaly['time'][i-5] , df_anomaly['time'][i+5], facecolor=color[key], alpha=0.5)
                 ct = 0
         
         if key == 'major':
@@ -163,6 +171,8 @@ def main(filename, plot_figures, begin, end):
                 if timestamp > begin and timestamp < end:
                     value = 3
         elif key == 'significant' and value < 2:
+            if plot_figures:
+                plt.plot(aux_t, aux_anomaly, 'mo')
             for timestamp in aux_t:
                 if timestamp > begin and timestamp < end:
                     value = 2
@@ -175,10 +185,21 @@ def main(filename, plot_figures, begin, end):
                         value = 1
 
     if plot_figures:
-        plt.legend(['Time series Anomalies', 'major', 'minor', 'significant'])
+        plt.legend(['Time series Anomalies', 'major', 'significant', 'minor'])
         plt.show()
 
     return value
+
+def spectral_residual(X):
+    X_FFT = fft(X)
+    A = abs(X_FFT)
+    P = angle(X_FFT)
+    L = log(A)
+    q = 3
+    hq = ones(q)/q**2
+    R = L - convolve(L,hq, 'same')
+    S = abs(ifft(exp(R + 1j*P))**2)
+    return S
 
 
 if __name__ == "__main__":
@@ -199,7 +220,7 @@ if __name__ == "__main__":
     #     end = int(split[-1].split('.')[0])  
     #     print('Anomaly' + str(ct)+':',begin,'-',end)
 
-    #     value = main(path + '/' + dir_file, False, begin, end)
+    #     value = main(path + '/' + dir_file, True, begin, end)
     #     val_ct += value
     #     if value == 3:
     #         major_ct += 1
@@ -209,6 +230,8 @@ if __name__ == "__main__":
     #         minor_ct += 1
     #     print('Value:', value, '\n')
     #     f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + '\n')
+    #     if ct > 4:
+    #         break
 
     # print('Result:', val_ct, '/', 3*ct)
     # f.write('\n')
@@ -217,4 +240,8 @@ if __name__ == "__main__":
     # f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
     # f.close()
 
-    value = main("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt", True, 27862, 27932)
+    # value = main("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt", True, 27862, 27932)
+    value = main("UCR_Anomaly_FullData/098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt", True, 4187, 4199)
+    # value = main("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt", False, 5988, 6085)
+
+    print(value)
