@@ -1,5 +1,6 @@
 import time
 import os
+import json
 
 from numpy import array, transpose, zeros, std, mean, load, linspace, log, exp, ones, angle, convolve
 from scipy.fft import fft, ifft
@@ -25,7 +26,8 @@ def main(filename, plot_figures, begin, end):
     # [t, X] = test_function.read("20211014.plt") 
     # [t, X] = test_function.load_npy("P-11.npy") 
     # [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
-    [t, X] = test_function.read_UCR(filename)
+    # [t, X] = test_function.read_UCR(filename)
+    [t, X] = test_function.load_npy(filename) 
 
     #Original time series plot
     if plot_figures:
@@ -137,7 +139,7 @@ def main(filename, plot_figures, begin, end):
     #%% Anomaly detection
     #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
     labels = ["ts", "trend", "seasonal", "resid", "sr"] 
-    anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=True)
+    anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=False)
 
     plt.figure()
     plt.plot(df['time'], df['X(t)'] ,'b')
@@ -147,7 +149,9 @@ def main(filename, plot_figures, begin, end):
     # plt.plot(df_anomaly['time'], anomaly.master_dict['major'],'r.' )
     value = 0
     color ={'minor':'g', 'significant':'m', 'major':'r'}  
+    legend = ['Time series Anomalies']
     for key in anomaly.master_dict.keys():
+        legend.append(key)
         aux_t =[]
         aux_anomaly =[]
         ct = 0
@@ -164,28 +168,41 @@ def main(filename, plot_figures, begin, end):
                 #     plt.axvspan(df_anomaly['time'][i-5] , df_anomaly['time'][i+5], facecolor=color[key], alpha=0.5)
                 ct = 0
         
+        for i in range(0,len(begin)):
+            aux_value = 0
+            b = begin[i] 
+            e = end[i] 
+            if key == 'major':
+                for timestamp in aux_t:
+                    if timestamp > b and timestamp < e:
+                        aux_value = 3
+                        break
+            elif key == 'significant' and value < 2:
+                for timestamp in aux_t:
+                    if timestamp > b and timestamp < e:
+                        aux_value = 2
+                        break
+            elif key == 'minor':
+                if value < 1:
+                    for timestamp in aux_t:
+                        if timestamp > b and timestamp < e:
+                            aux_value = 1
+                            break
+            value = value + aux_value 
+        value = value / len(begin)
+
         if key == 'major':
             if plot_figures:
                 plt.plot(aux_t, aux_anomaly, 'ro')
-            for timestamp in aux_t:
-                if timestamp > begin and timestamp < end:
-                    value = 3
-        elif key == 'significant' and value < 2:
+        elif key == 'significant':
             if plot_figures:
                 plt.plot(aux_t, aux_anomaly, 'mo')
-            for timestamp in aux_t:
-                if timestamp > begin and timestamp < end:
-                    value = 2
         elif key == 'minor':
             if plot_figures:
-                plt.plot(aux_t, aux_anomaly, '.g')
-            if value < 1:
-                for timestamp in aux_t:
-                    if timestamp > begin and timestamp < end:
-                        value = 1
+                plt.plot(aux_t, aux_anomaly, '.g') 
 
     if plot_figures:
-        plt.legend(['Time series Anomalies', 'major', 'significant', 'minor'])
+        plt.legend(legend)
         plt.show()
 
     return value
@@ -203,6 +220,8 @@ def spectral_residual(X):
 
 
 if __name__ == "__main__":
+    #--- UCR anomalies ---
+    #  
     # path = os.getcwd() + '/UCR_Anomaly_FullData'
     # dir_list = os.listdir(path)
     # f = open('results.txt', 'w')
@@ -240,8 +259,66 @@ if __name__ == "__main__":
     # f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
     # f.close()
 
+
+    #--- NASA anomalies ---
+    #  
+    path = os.getcwd() + '/test_NASA'
+    dir_list = os.listdir(path)
+
+    f_anomalies = open("NASA_anomalies.txt", 'r')
+    dict_an = {} 
+    L = len(f_anomalies.readlines())
+    f_anomalies.seek(0)
+    for i in range(0,L):
+        line = f_anomalies.readline().split(";")
+        dict_an[line[0]] = json.loads(line[1].split("\n")[0])
+    f_anomalies.close()
+    keys = dict_an.keys()
+
+    f = open('results.txt', 'w')
+    f.write('--- Major = 3, significant = 2, minor = 1, not found = 0--- \n')
+    f.write('\n')
+    val_ct = 0
+    ct = 0
+    major_ct = 0
+    significant_ct = 0
+    minor_ct = 0
+    for dir_file in dir_list:
+        key = dir_file.split(".")[0]
+        if key in keys:
+            ct += 1
+            begin = []
+            end = []  
+            for an in dict_an[key] : 
+                begin.append(an[0])
+                end.append(an[1])
+            print('Anomaly' + str(ct)+ ' (' + key + ')' + ':',begin,'-',end)
+
+            value = main(path + '/' + dir_file, True, begin, end)
+            val_ct += value
+            if value >= 2.5:
+                major_ct += 1
+            elif value >= 1.5:
+                significant_ct += 1
+            elif value >= 0.5:
+                minor_ct += 1
+            print('Value:', value, '\n')
+            f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + '\n')
+            if ct > 4:
+                break
+
+    print('Result:', val_ct, '/', 3*ct)
+    f.write('\n')
+    f.write('Result: ' + str(val_ct) + '/' + str(3*ct))
+    f.write('\n')
+    f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
+    f.close()
+
+
+
+
     # value = main("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt", True, 27862, 27932)
-    value = main("UCR_Anomaly_FullData/098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt", True, 4187, 4199)
+    # value = main("UCR_Anomaly_FullData/098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt", True, 4150, 4199)
     # value = main("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt", False, 5988, 6085)
 
-    print(value)
+    # print(value)

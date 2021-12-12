@@ -1,6 +1,10 @@
 --- Major = 3, significant = 2, minor = 1, not found = 0--- 
 
-1) 098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt, 0
-2) 094_UCR_Anomaly_NOISEBIDMC1_2500_5400_5600.txt, 3
-3) 156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt, 3
-4) 111_UCR_Anomaly_3sddb40_35000_46600_46900.txt, 1
+1) D-16.npy, 0
+2) P-14.npy, 3.0
+3) G-6.npy, 3.0
+4) F-3.npy, 3.0
+5) T-13.npy, 1.0
+
+Result: 9.5/15
+Major: 3.0, Significant: 3.0, Minor: 4

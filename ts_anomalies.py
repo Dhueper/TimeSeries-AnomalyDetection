@@ -109,12 +109,13 @@ class Anomaly_detection():
                         ct_anomaly[item] = 0 
 
                 #Minor anomaly
-                self.master_dict['minor'] = zeros(len(ct_anomaly))
-                while max(ct_anomaly) > 1:
-                    ct_max_loc = where(ct_anomaly == max(ct_anomaly))
-                    for item in ct_max_loc:
-                        self.master_dict['minor'][item]  =  1
-                        ct_anomaly[item] = 0
+                if max(ct_anomaly) > 0:
+                    self.master_dict['minor'] = zeros(len(ct_anomaly))
+                    while max(ct_anomaly) > 1:
+                        ct_max_loc = where(ct_anomaly == max(ct_anomaly))
+                        for item in ct_max_loc:
+                            self.master_dict['minor'][item]  =  1
+                            ct_anomaly[item] = 0
 
             # tag ={'major':'span', 'minor':'span'} 
             # color ={'major':'red', 'minor':'green'} 
