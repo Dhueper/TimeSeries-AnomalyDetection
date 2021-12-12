@@ -154,7 +154,7 @@ def load_npy(filename):
 
 
 if __name__ == "__main__":
-    [t, X] = load_npy("test_NASA/A-1.npy")
+    [t, X] = read_UCR("UCR_Anomaly_FullData/204_UCR_Anomaly_CHARISfive_12412_15000_15070.txt")
 
      #Plots
     plt.figure()

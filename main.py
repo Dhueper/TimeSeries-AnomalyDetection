@@ -26,8 +26,9 @@ def main(filename, plot_figures, begin, end):
     # [t, X] = test_function.read("20211014.plt") 
     # [t, X] = test_function.load_npy("P-11.npy") 
     # [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
-    # [t, X] = test_function.read_UCR(filename)
-    [t, X] = test_function.load_npy(filename) 
+
+    [t, X] = test_function.read_UCR(filename)
+    # [t, X] = test_function.load_npy(filename) 
 
     #Original time series plot
     if plot_figures:
@@ -103,6 +104,13 @@ def main(filename, plot_figures, begin, end):
             X_anomaly.append(X[i])
             t_anomaly.append(t[i])
 
+    if len(X_anomaly) < 10:
+        X_anomaly = [] 
+        t_anomaly = [] 
+        for i in range(int(len(X)/20),int(19*len(X)/20)):
+            X_anomaly.append(X[i])
+            t_anomaly.append(t[i])
+
     print('Original length =',len(X), ', New length =', len(X_anomaly))
 
     # plt.figure()
@@ -149,6 +157,7 @@ def main(filename, plot_figures, begin, end):
     # plt.plot(df_anomaly['time'], anomaly.master_dict['significant'],'m.' )
     # plt.plot(df_anomaly['time'], anomaly.master_dict['major'],'r.' )
     value = zeros(len(begin)) 
+    val = 0
     color ={'minor':'g', 'significant':'m', 'major':'r'}  
     legend = ['Time series Anomalies']
     for key in anomaly.master_dict.keys():
@@ -223,59 +232,8 @@ def spectral_residual(X):
 if __name__ == "__main__":
     #--- UCR anomalies ---
     #  
-    # path = os.getcwd() + '/UCR_Anomaly_FullData'
-    # dir_list = os.listdir(path)
-    # f = open('results.txt', 'w')
-    # f.write('--- Major = 3, significant = 2, minor = 1, not found = 0--- \n')
-    # f.write('\n')
-    # val_ct = 0
-    # ct = 0
-    # major_ct = 0
-    # significant_ct = 0
-    # minor_ct = 0
-    # for dir_file in dir_list:
-    #     ct += 1
-    #     split = dir_file.split('_')
-    #     begin = int(split[-2])
-    #     end = int(split[-1].split('.')[0])  
-    #     print('Anomaly' + str(ct)+':',begin,'-',end)
-
-    #     value = main(path + '/' + dir_file, True, begin, end)
-    #     val_ct += value
-    #     if value == 3:
-    #         major_ct += 1
-    #     elif value == 2:
-    #         significant_ct += 1
-    #     elif value == 1:
-    #         minor_ct += 1
-    #     print('Value:', value, '\n')
-    #     f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + '\n')
-    #     if ct > 4:
-    #         break
-
-    # print('Result:', val_ct, '/', 3*ct)
-    # f.write('\n')
-    # f.write('Result: ' + str(val_ct) + '/' + str(3*ct))
-    # f.write('\n')
-    # f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
-    # f.close()
-
-
-    #--- NASA anomalies ---
-    #  
-    path = os.getcwd() + '/test_NASA'
+    path = os.getcwd() + '/UCR_Anomaly_FullData'
     dir_list = os.listdir(path)
-
-    f_anomalies = open("NASA_anomalies.txt", 'r')
-    dict_an = {} 
-    L = len(f_anomalies.readlines())
-    f_anomalies.seek(0)
-    for i in range(0,L):
-        line = f_anomalies.readline().split(";")
-        dict_an[line[0]] = json.loads(line[1].split("\n")[0])
-    f_anomalies.close()
-    keys = dict_an.keys()
-
     f = open('results.txt', 'w')
     f.write('--- Major = 3, significant = 2, minor = 1, not found = 0--- \n')
     f.write('\n')
@@ -285,17 +243,14 @@ if __name__ == "__main__":
     significant_ct = 0
     minor_ct = 0
     for dir_file in dir_list:
-        key = dir_file.split(".")[0]
-        if key in keys:
+        split = dir_file.split('_')
+        if split[0] < 204 or split[0] > 208:
             ct += 1
-            begin = []
-            end = []  
-            for an in dict_an[key] : 
-                begin.append(an[0])
-                end.append(an[1])
-            print('Anomaly' + str(ct)+ ' (' + key + ')' + ':',begin,'-',end)
+            begin = int(split[-2])
+            end = int(split[-1].split('.')[0])  
+            print('Anomaly' + str(ct)+':',begin,'-',end)
 
-            value = main(path + '/' + dir_file, False, begin, end)
+            value = main(path + '/' + dir_file, False, [begin], [end])
             val_ct += value
             if value >= 2.5:
                 major_ct += 1
@@ -312,6 +267,59 @@ if __name__ == "__main__":
     f.write('\n')
     f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
     f.close()
+
+
+    #--- NASA anomalies ---
+    #  
+    # path = os.getcwd() + '/test_NASA'
+    # dir_list = os.listdir(path)
+
+    # f_anomalies = open("NASA_anomalies.txt", 'r')
+    # dict_an = {} 
+    # L = len(f_anomalies.readlines())
+    # f_anomalies.seek(0)
+    # for i in range(0,L):
+    #     line = f_anomalies.readline().split(";")
+    #     dict_an[line[0]] = json.loads(line[1].split("\n")[0])
+    # f_anomalies.close()
+    # keys = dict_an.keys()
+
+    # f = open('results.txt', 'w')
+    # f.write('--- Major = 3, significant = 2, minor = 1, not found = 0--- \n')
+    # f.write('\n')
+    # val_ct = 0
+    # ct = 0
+    # major_ct = 0
+    # significant_ct = 0
+    # minor_ct = 0
+    # for dir_file in dir_list:
+    #     key = dir_file.split(".")[0]
+    #     if key in keys:
+    #         ct += 1
+    #         begin = []
+    #         end = []  
+    #         for an in dict_an[key] : 
+    #             begin.append(an[0])
+    #             end.append(an[1])
+    #         print('Anomaly' + str(ct)+ ' (' + key + ')' + ':',begin,'-',end)
+
+    #         value = main(path + '/' + dir_file, False, begin, end)
+    #         val_ct += value
+    #         if value >= 2.5:
+    #             major_ct += 1
+    #         elif value >= 1.5:
+    #             significant_ct += 1
+    #         elif value >= 0.5:
+    #             minor_ct += 1
+    #         print('Value:', value, '\n')
+    #         f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + '\n')
+
+    # print('Result:', val_ct, '/', 3*ct)
+    # f.write('\n')
+    # f.write('Result: ' + str(val_ct) + '/' + str(3*ct))
+    # f.write('\n')
+    # f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
+    # f.close()
 
 
 
