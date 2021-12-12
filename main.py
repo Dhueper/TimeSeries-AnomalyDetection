@@ -2,7 +2,7 @@ import time
 import os
 import json
 
-from numpy import array, transpose, zeros, std, mean, load, linspace, log, exp, ones, angle, convolve
+from numpy import array, transpose, zeros, std, mean, load, linspace, log, exp, ones, angle, convolve, sqrt
 from scipy.fft import fft, ifft
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -71,7 +71,7 @@ def main(filename, plot_figures, begin, end):
     #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
     labels = ["ts", "trend", "seasonal", "resid", "sr"] 
     anomaly = ts_anomalies.Anomaly_detection(df, labels, plot_anomalies=False)
-    plt.show()
+
     anomaly_list = array([False for _ in range(0,len(X))])
 
     X_anomaly = []  
@@ -82,7 +82,7 @@ def main(filename, plot_figures, begin, end):
 
     aux = len(X)
     ct = 0
-    for i in range(int(len(X)/10),int(9*len(X)/10)):
+    for i in range(int(len(X)/20),int(19*len(X)/20)):
         if anomaly_list[i] and aux >= int(len(X)/50):
             aux = 1
             if ct == 0:
@@ -141,13 +141,14 @@ def main(filename, plot_figures, begin, end):
     labels = ["ts", "trend", "seasonal", "resid", "sr"] 
     anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=False)
 
-    plt.figure()
-    plt.plot(df['time'], df['X(t)'] ,'b')
+    if plot_figures:
+        plt.figure()
+        plt.plot(df['time'], df['X(t)'] ,'b')
 
     # plt.plot(df_anomaly['time'], anomaly.master_dict['minor'],'g.' )
     # plt.plot(df_anomaly['time'], anomaly.master_dict['significant'],'m.' )
     # plt.plot(df_anomaly['time'], anomaly.master_dict['major'],'r.' )
-    value = 0
+    value = zeros(len(begin)) 
     color ={'minor':'g', 'significant':'m', 'major':'r'}  
     legend = ['Time series Anomalies']
     for key in anomaly.master_dict.keys():
@@ -169,27 +170,26 @@ def main(filename, plot_figures, begin, end):
                 ct = 0
         
         for i in range(0,len(begin)):
-            aux_value = 0
             b = begin[i] 
             e = end[i] 
             if key == 'major':
                 for timestamp in aux_t:
                     if timestamp > b and timestamp < e:
-                        aux_value = 3
+                        value[i]  = 3
                         break
-            elif key == 'significant' and value < 2:
+            elif key == 'significant' and value[i] < 2:
                 for timestamp in aux_t:
                     if timestamp > b and timestamp < e:
-                        aux_value = 2
+                        value[i] = 2
                         break
             elif key == 'minor':
-                if value < 1:
+                if value[i] < 1:
                     for timestamp in aux_t:
                         if timestamp > b and timestamp < e:
-                            aux_value = 1
+                            value[i] = 1
                             break
-            value = value + aux_value 
-        value = value / len(begin)
+
+        val = sum(value) / len(begin)
 
         if key == 'major':
             if plot_figures:
@@ -205,17 +205,18 @@ def main(filename, plot_figures, begin, end):
         plt.legend(legend)
         plt.show()
 
-    return value
+    return val
 
 def spectral_residual(X):
     X_FFT = fft(X)
-    A = abs(X_FFT)
+    A = abs(X_FFT) + 1e-8
     P = angle(X_FFT)
     L = log(A)
     q = 3
     hq = ones(q)/q**2
     R = L - convolve(L,hq, 'same')
     S = abs(ifft(exp(R + 1j*P))**2)
+
     return S
 
 
@@ -294,7 +295,7 @@ if __name__ == "__main__":
                 end.append(an[1])
             print('Anomaly' + str(ct)+ ' (' + key + ')' + ':',begin,'-',end)
 
-            value = main(path + '/' + dir_file, True, begin, end)
+            value = main(path + '/' + dir_file, False, begin, end)
             val_ct += value
             if value >= 2.5:
                 major_ct += 1
@@ -304,8 +305,6 @@ if __name__ == "__main__":
                 minor_ct += 1
             print('Value:', value, '\n')
             f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + '\n')
-            if ct > 4:
-                break
 
     print('Result:', val_ct, '/', 3*ct)
     f.write('\n')
@@ -320,5 +319,6 @@ if __name__ == "__main__":
     # value = main("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt", True, 27862, 27932)
     # value = main("UCR_Anomaly_FullData/098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt", True, 4150, 4199)
     # value = main("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt", False, 5988, 6085)
+    # value = main("test_NASA/D-9.npy", True,[6250], [7405])
 
     # print(value)
