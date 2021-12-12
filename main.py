@@ -244,7 +244,7 @@ if __name__ == "__main__":
     minor_ct = 0
     for dir_file in dir_list:
         split = dir_file.split('_')
-        if split[0] < 204 or split[0] > 208:
+        if (int(split[0]) < 204 or int(split[0]) > 208) and (int(split[0]) < 242 or int(split[0]) > 243):
             ct += 1
             begin = int(split[-2])
             end = int(split[-1].split('.')[0])  
