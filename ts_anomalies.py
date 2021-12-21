@@ -37,14 +37,17 @@ class Anomaly_detection():
             if tag == "sr":
                 ct += 1
                 self.analysis = ['th', 'ls', 'vol'] 
-                self.sigma_th = 3
+                self.sigma_th = 4
                 self.c_ls = 12.0
                 self.c_vol = 20.0
                 self.sr_dict = self.detector(df['sr'])
+                anomaly_list = array([False for _ in range(0,len(ct_anomaly))])
                 for key in self.analysis:
+                    # anomaly_list = anomaly_list | array(self.sr_dict[key], dtype=bool)
                     # aux0  = logical_or(aux0, self.ts_dict[key])
                     for i in range(int(len(ct_anomaly)/20),int(19*len(ct_anomaly)/20)):
                         if self.sr_dict[key][i] == True:
+                        # if anomaly_list[i] == True: 
                             ct_anomaly[i] += 1
 
             if tag == "trend":

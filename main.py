@@ -66,7 +66,7 @@ def main(filename, plot_figures, begin, end):
     df['resid'] = decomposition.resid  
 
     #Spectral residual
-    df['sr'] = spectral_residual(X)
+    df['sr'] = spectral_residual(X, 1)
 
     # plt.figure()
     # plt.plot(t, df['sr'])   
@@ -143,7 +143,7 @@ def main(filename, plot_figures, begin, end):
     df_anomaly['resid'] = decomposition.resid  
 
     #Spectral residual
-    df_anomaly['sr'] = spectral_residual(X_anomaly) 
+    df_anomaly['sr'] = spectral_residual(X_anomaly, 2) 
 
     df_anomaly = validate_series(df_anomaly)
 
@@ -248,7 +248,7 @@ def main(filename, plot_figures, begin, end):
 
     return val, best_detection
 
-def spectral_residual(X):
+def spectral_residual(X, c):
     X_FFT = fft(X)
     A = abs(X_FFT) + 1e-8
     P = angle(X_FFT)
@@ -256,7 +256,7 @@ def spectral_residual(X):
     q = 3
     hq = ones(q)/q
     R = L - convolve(L,hq, 'same')
-    S = abs(ifft(exp(R + 1j*P))**2)
+    S = abs(ifft(exp(R + 1j*P))**c)
 
     return S
 
@@ -284,7 +284,7 @@ if __name__ == "__main__":
     #         end = int(split[-1].split('.')[0])  
     #         print('Anomaly' + str(ct)+':',begin,'-',end)
 
-    #         value, best_detection = main(path + '/' + dir_file, False, [begin], [end])
+    #         value, best_detection = main(path + '/' + dir_file, True, [begin], [end])
     #         val_ct += value
     #         if value >= 2.5:
     #             major_ct += 1
@@ -292,11 +292,14 @@ if __name__ == "__main__":
     #             significant_ct += 1
     #         elif value >= 0.5:
     #             minor_ct += 1
-            # for method in best_detection:
-            #     method_ct[method] += 1 
+    #         for method in best_detection:
+    #             method_ct[method] += 1 
     #         print('Value:', value)
-            # print('Detected by:', best_detection, '\n')
-            # f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + ', ' + str(best_detection) + '\n')
+    #         print('Detected by:', best_detection, '\n')
+    #         f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + ', ' + str(best_detection) + '\n')
+
+    #     if ct>3:
+    #         break
 
     # print('Result:', val_ct, '/', 3*ct)
     # f.write('\n')
