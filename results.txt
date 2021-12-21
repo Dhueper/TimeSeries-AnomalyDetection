@@ -1,7 +1,12 @@
+NASA telemetry data: 
 --- Major = 3, significant = 2, minor = 1, not found = 0--- 
 
 1) D-16.npy, 3.0, ['sr']
-2) P-14.npy, 3.0, ['resid', 'ts', 'sr', 'seasonal', 'trend']
+2) P-14.npy, 3.0, ['resid', 'ts', 'sr', 'seasonal']
+3) G-6.npy, 3.0, ['trend', 'seasonal', 'sr', 'ts', 'resid']
+4) F-3.npy, 2.0, ['ts', 'sr', 'trend', 'seasonal']
+5) T-13.npy, 3.0, ['ts', 'trend']
 
-Result: 6.0/6
-Major: 2, Significant: 0, Minor: 0
+Result: 14.0/15
+Major: 4, Significant: 1, Minor: 0
+ts: 4    sr: 4    trend: 3    seasonal: 3    resid: 2    

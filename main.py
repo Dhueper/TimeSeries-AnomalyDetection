@@ -149,9 +149,9 @@ def main(filename, plot_figures, begin, end):
 
 
     #%% Anomaly detection
-    #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
+    #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid", 
     labels = ["ts", "trend", "seasonal", "resid", "sr"] 
-    anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=True)
+    anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=plot_figures)
 
     if plot_figures:
         plt.figure()
@@ -170,7 +170,8 @@ def main(filename, plot_figures, begin, end):
         aux_anomaly =[]
         ct = 0
 
-        for i in range(0, len(anomaly.master_dict[key])):
+        # for i in range(0, len(anomaly.master_dict[key])):
+        for i in range(0, len(df_anomaly['time'])):
             if anomaly.master_dict[key][i] == 1:
                 # if ct == 1 and key == 'significant' and plot_figures:
                 #     plt.axvspan(df_anomaly['time'][i-10] , df_anomaly['time'][i+10], facecolor=color[key], alpha=0.5)
@@ -293,7 +294,7 @@ if __name__ == "__main__":
     #             minor_ct += 1
             # for method in best_detection:
             #     method_ct[method] += 1 
-    #         print('Value:', value, '\n')
+    #         print('Value:', value)
             # print('Detected by:', best_detection, '\n')
             # f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + ', ' + str(best_detection) + '\n')
 
@@ -355,12 +356,9 @@ if __name__ == "__main__":
                 minor_ct += 1
             for method in best_detection:
                 method_ct[method] += 1 
-            print('Value:', value, '\n')
+            print('Value:', value)
             print('Detected by:', best_detection, '\n')
             f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + ', ' + str(best_detection) + '\n')
-
-        if ct>4:
-            break
 
     print('Result:', val_ct, '/', 3*ct)
     f.write('\n')
@@ -379,7 +377,7 @@ if __name__ == "__main__":
     # value, best_detection = main("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt", True, 27862, 27932)
     # value, best_detection = main("UCR_Anomaly_FullData/098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt", True, 4150, 4199)
     # value, best_detection = main("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt", True, [5988] ,[6085])
-    # value, best_detection = main("test_NASA/P-11.npy", True,[6250], [7405])
+    # value, best_detection = main("test_NASA/G-1.npy", True,[4770] ,[4890])
     # value, best_detection = main("UCR_Anomaly_FullData/250_UCR_Anomaly_weallwalk_2951_7290_7296.txt", True, [7290], [7296])
 
     # print(value, best_detection)

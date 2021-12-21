@@ -22,16 +22,16 @@ class Anomaly_detection():
                 ct += 1
                 self.analysis = ['th', 'ls', 'vol'] 
                 self.sigma_th = 3
-                self.c_ls = 12.0
+                self.c_ls = 15.0
                 self.c_vol = 20.0
                 self.ts_dict = self.detector(df['X(t)'])
-                ct_anomaly = zeros(len(self.ts_dict['th']))
+                # ct_anomaly = zeros(len(self.ts_dict['th']))
                 for key in self.analysis:
                     # aux0  = logical_or(aux0, self.ts_dict[key])
                     for i in range(int(len(ct_anomaly)/20),int(19*len(ct_anomaly)/20)):
                         if self.ts_dict[key][i] == True:
                             ct_anomaly[i] += 1
-                            if key == 'th':
+                            if key == 'vol':
                                 ct_anomaly[i] += 1
 
             if tag == "sr":
@@ -51,7 +51,7 @@ class Anomaly_detection():
                 ct += 1
                 self.analysis = ['th', 'ls'] 
                 self.sigma_th = 3
-                self.c_ls = 12.0
+                self.c_ls = 15.0
                 self.trend_dict = self.detector(df['trend'])
                 for key in self.analysis:
                     # aux1  = logical_or(aux1, self.trend_dict[key])
