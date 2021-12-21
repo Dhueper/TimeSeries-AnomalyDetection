@@ -1,0 +1,7 @@
+--- Major = 3, significant = 2, minor = 1, not found = 0--- 
+
+1) D-16.npy, 3.0, ['sr']
+2) P-14.npy, 3.0, ['resid', 'ts', 'sr', 'seasonal', 'trend']
+
+Result: 6.0/6
+Major: 2, Significant: 0, Minor: 0

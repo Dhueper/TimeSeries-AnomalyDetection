@@ -27,8 +27,8 @@ def main(filename, plot_figures, begin, end):
     # [t, X] = test_function.load_npy("P-11.npy") 
     # [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
 
-    [t, X] = test_function.read_UCR(filename)
-    # [t, X] = test_function.load_npy(filename) 
+    # [t, X] = test_function.read_UCR(filename)
+    [t, X] = test_function.load_npy(filename) 
 
     #Original time series plot
     if plot_figures:
@@ -66,7 +66,11 @@ def main(filename, plot_figures, begin, end):
     df['resid'] = decomposition.resid  
 
     #Spectral residual
-    df['sr'] = spectral_residual(X)   
+    df['sr'] = spectral_residual(X)
+
+    # plt.figure()
+    # plt.plot(t, df['sr'])   
+    # plt.show()
 
     #%% Anomaly detection
     #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
@@ -147,7 +151,7 @@ def main(filename, plot_figures, begin, end):
     #%% Anomaly detection
     #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid" 
     labels = ["ts", "trend", "seasonal", "resid", "sr"] 
-    anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=False)
+    anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=True)
 
     if plot_figures:
         plt.figure()
@@ -186,19 +190,19 @@ def main(filename, plot_figures, begin, end):
                     if timestamp > b and timestamp < e:
                         value[i]  = 3
                         break
+
             elif key == 'significant' and value[i] < 2:
                 for timestamp in aux_t:
                     if timestamp > b and timestamp < e:
                         value[i] = 2
                         break
+
             elif key == 'minor':
                 if value[i] < 1:
                     for timestamp in aux_t:
                         if timestamp > b and timestamp < e:
                             value[i] = 1
                             break
-
-        val = sum(value) / len(begin)
 
         if key == 'major':
             if plot_figures:
@@ -210,11 +214,38 @@ def main(filename, plot_figures, begin, end):
             if plot_figures:
                 plt.plot(aux_t, aux_anomaly, '.g') 
 
+
+    #Detect which method is more successfull  
+    best_detection = [] 
+    for i in range(0,len(df_anomaly['time'])):
+        for limit in range(0,len(begin)):
+            b = begin[limit] 
+            e = end[limit]
+            timestamp = df_anomaly['time'][i]
+            if timestamp > b and timestamp < e:
+                for j in anomaly.ts_dict.keys():
+                    if (anomaly.ts_dict[j][i] == True) and ('ts' not in best_detection):
+                        best_detection.append('ts') 
+                for j in anomaly.sr_dict.keys():
+                    if (anomaly.sr_dict[j][i] == True) and ('sr' not in best_detection):
+                        best_detection.append('sr') 
+                for j in anomaly.trend_dict.keys():
+                    if (anomaly.trend_dict[j][i] == True) and ('trend' not in best_detection):
+                        best_detection.append('trend') 
+                for j in anomaly.seasonal_dict.keys():
+                    if (anomaly.seasonal_dict[j][i] == True) and ('seasonal' not in best_detection):
+                        best_detection.append('seasonal') 
+                for j in anomaly.resid_dict.keys():
+                    if (anomaly.resid_dict[j][i] == True) and ('resid' not in best_detection):
+                        best_detection.append('resid') 
+
     if plot_figures:
         plt.legend(legend)
         plt.show()
 
-    return val
+    val = sum(value) / len(begin)
+
+    return val, best_detection
 
 def spectral_residual(X):
     X_FFT = fft(X)
@@ -222,7 +253,7 @@ def spectral_residual(X):
     P = angle(X_FFT)
     L = log(A)
     q = 3
-    hq = ones(q)/q**2
+    hq = ones(q)/q
     R = L - convolve(L,hq, 'same')
     S = abs(ifft(exp(R + 1j*P))**2)
 
@@ -232,59 +263,10 @@ def spectral_residual(X):
 if __name__ == "__main__":
     #--- UCR anomalies ---
     #  
-    path = os.getcwd() + '/UCR_Anomaly_FullData'
-    dir_list = os.listdir(path)
-    f = open('results.txt', 'w')
-    f.write('--- Major = 3, significant = 2, minor = 1, not found = 0--- \n')
-    f.write('\n')
-    val_ct = 0
-    ct = 0
-    major_ct = 0
-    significant_ct = 0
-    minor_ct = 0
-    for dir_file in dir_list:
-        split = dir_file.split('_')
-        if (int(split[0]) < 204 or int(split[0]) > 208) and (int(split[0]) < 242 or int(split[0]) > 243) and (int(split[0]) < 225 or int(split[0]) > 226):
-            ct += 1
-            begin = int(split[-2])
-            end = int(split[-1].split('.')[0])  
-            print('Anomaly' + str(ct)+':',begin,'-',end)
-
-            value = main(path + '/' + dir_file, False, [begin], [end])
-            val_ct += value
-            if value >= 2.5:
-                major_ct += 1
-            elif value >= 1.5:
-                significant_ct += 1
-            elif value >= 0.5:
-                minor_ct += 1
-            print('Value:', value, '\n')
-            f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + '\n')
-
-    print('Result:', val_ct, '/', 3*ct)
-    f.write('\n')
-    f.write('Result: ' + str(val_ct) + '/' + str(3*ct))
-    f.write('\n')
-    f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
-    f.close()
-
-
-    #--- NASA anomalies ---
-    #  
-    # path = os.getcwd() + '/test_NASA'
+    # path = os.getcwd() + '/UCR_Anomaly_FullData'
     # dir_list = os.listdir(path)
-
-    # f_anomalies = open("NASA_anomalies.txt", 'r')
-    # dict_an = {} 
-    # L = len(f_anomalies.readlines())
-    # f_anomalies.seek(0)
-    # for i in range(0,L):
-    #     line = f_anomalies.readline().split(";")
-    #     dict_an[line[0]] = json.loads(line[1].split("\n")[0])
-    # f_anomalies.close()
-    # keys = dict_an.keys()
-
     # f = open('results.txt', 'w')
+    # f.write('UCR benchmark: \n')
     # f.write('--- Major = 3, significant = 2, minor = 1, not found = 0--- \n')
     # f.write('\n')
     # val_ct = 0
@@ -292,18 +274,16 @@ if __name__ == "__main__":
     # major_ct = 0
     # significant_ct = 0
     # minor_ct = 0
+    # method_ct = {'ts':0, 'sr':0, 'trend':0, 'seasonal':0, 'resid':0} 
     # for dir_file in dir_list:
-    #     key = dir_file.split(".")[0]
-    #     if key in keys:
+    #     split = dir_file.split('_')
+    #     if (int(split[0]) < 204 or int(split[0]) > 208) and (int(split[0]) < 242 or int(split[0]) > 243) and (int(split[0]) < 225 or int(split[0]) > 226):
     #         ct += 1
-    #         begin = []
-    #         end = []  
-    #         for an in dict_an[key] : 
-    #             begin.append(an[0])
-    #             end.append(an[1])
-    #         print('Anomaly' + str(ct)+ ' (' + key + ')' + ':',begin,'-',end)
+    #         begin = int(split[-2])
+    #         end = int(split[-1].split('.')[0])  
+    #         print('Anomaly' + str(ct)+':',begin,'-',end)
 
-    #         value = main(path + '/' + dir_file, False, begin, end)
+    #         value, best_detection = main(path + '/' + dir_file, False, [begin], [end])
     #         val_ct += value
     #         if value >= 2.5:
     #             major_ct += 1
@@ -311,22 +291,95 @@ if __name__ == "__main__":
     #             significant_ct += 1
     #         elif value >= 0.5:
     #             minor_ct += 1
+            # for method in best_detection:
+            #     method_ct[method] += 1 
     #         print('Value:', value, '\n')
-    #         f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + '\n')
+            # print('Detected by:', best_detection, '\n')
+            # f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + ', ' + str(best_detection) + '\n')
 
     # print('Result:', val_ct, '/', 3*ct)
     # f.write('\n')
     # f.write('Result: ' + str(val_ct) + '/' + str(3*ct))
     # f.write('\n')
     # f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
+    # f.write('\n')
+    # for method in method_ct.keys():
+    #     f.write(method + ': ' + str(method_ct[method]))
+    #     f.write('    ')
     # f.close()
 
 
+    #--- NASA anomalies ---
+    #  
+    path = os.getcwd() + '/test_NASA'
+    dir_list = os.listdir(path)
+
+    f_anomalies = open("NASA_anomalies.txt", 'r')
+    dict_an = {} 
+    L = len(f_anomalies.readlines())
+    f_anomalies.seek(0)
+    for i in range(0,L):
+        line = f_anomalies.readline().split(";")
+        dict_an[line[0]] = json.loads(line[1].split("\n")[0])
+    f_anomalies.close()
+    keys = dict_an.keys()
+
+    f = open('results.txt', 'w')
+    f.write('NASA telemetry data: \n')
+    f.write('--- Major = 3, significant = 2, minor = 1, not found = 0--- \n')
+    f.write('\n')
+    val_ct = 0
+    ct = 0
+    major_ct = 0
+    significant_ct = 0
+    minor_ct = 0
+    method_ct = {'ts':0, 'sr':0, 'trend':0, 'seasonal':0, 'resid':0} 
+    for dir_file in dir_list:
+        key = dir_file.split(".")[0]
+        if key in keys:
+            ct += 1
+            begin = []
+            end = []  
+            for an in dict_an[key] : 
+                begin.append(an[0])
+                end.append(an[1])
+            print('Anomaly' + str(ct)+ ' (' + key + ')' + ':',begin,'-',end)
+
+            value, best_detection = main(path + '/' + dir_file, False, begin, end)
+            val_ct += value
+            if value >= 2.5:
+                major_ct += 1
+            elif value >= 1.5:
+                significant_ct += 1
+            elif value >= 0.5:
+                minor_ct += 1
+            for method in best_detection:
+                method_ct[method] += 1 
+            print('Value:', value, '\n')
+            print('Detected by:', best_detection, '\n')
+            f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + ', ' + str(best_detection) + '\n')
+
+        if ct>4:
+            break
+
+    print('Result:', val_ct, '/', 3*ct)
+    f.write('\n')
+    f.write('Result: ' + str(val_ct) + '/' + str(3*ct))
+    f.write('\n')
+    f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
+    f.write('\n')
+    for method in method_ct.keys():
+        f.write(method + ': ' + str(method_ct[method]))
+        f.write('    ')
+    f.close()
 
 
-    # value = main("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt", True, 27862, 27932)
-    # value = main("UCR_Anomaly_FullData/098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt", True, 4150, 4199)
-    # value = main("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt", False, 5988, 6085)
-    # value = main("test_NASA/D-9.npy", True,[6250], [7405])
 
-    # print(value)
+
+    # value, best_detection = main("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt", True, 27862, 27932)
+    # value, best_detection = main("UCR_Anomaly_FullData/098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt", True, 4150, 4199)
+    # value, best_detection = main("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt", True, [5988] ,[6085])
+    # value, best_detection = main("test_NASA/P-11.npy", True,[6250], [7405])
+    # value, best_detection = main("UCR_Anomaly_FullData/250_UCR_Anomaly_weallwalk_2951_7290_7296.txt", True, [7290], [7296])
+
+    # print(value, best_detection)

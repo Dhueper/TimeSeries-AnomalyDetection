@@ -97,7 +97,13 @@ def period_est(t, xs):
 
 
 if __name__ == "__main__":
-    [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt") 
+    [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
+    # [t, X] = test_function.solar_power_sso(1)
+    # Ns = 1000
+    # t = np.linspace(0,2*np.pi,Ns, endpoint=False) 
+
+    # X = np.sin(16 * t) + np.sin(24 * t) + np.cos(12 * t)
+
     print(t[1] - t[0])
     plt.figure()
     plt.plot(t,X)

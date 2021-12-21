@@ -1,6 +1,4 @@
 from adtk.detector import ThresholdAD, LevelShiftAD, VolatilityShiftAD, QuantileAD
-from adtk.transformer import CustomizedTransformerHD
-from adtk.pipe import Pipeline
 from adtk.visualization import plot
 from adtk.data import validate_series
 
@@ -14,18 +12,18 @@ class Anomaly_detection():
         self.anomaly_color ={'th':'red', 'ls':'orange', 'vol':'green'} 
         self.master_dict = {} 
         ct = 0
-        aux0 = array([False for _ in range(0,len(df['X(t)']))])
-        aux1 = array([False for _ in range(0,len(df['X(t)']))]) 
-        aux2 = array([False for _ in range(0,len(df['X(t)']))])
-        aux3 = array([False for _ in range(0,len(df['X(t)']))])
+        # aux0 = array([False for _ in range(0,len(df['X(t)']))])
+        # aux1 = array([False for _ in range(0,len(df['X(t)']))]) 
+        # aux2 = array([False for _ in range(0,len(df['X(t)']))])
+        # aux3 = array([False for _ in range(0,len(df['X(t)']))])
         ct_anomaly = zeros(len(df['X(t)']))
         for tag in labels:
             if tag == "ts":
                 ct += 1
                 self.analysis = ['th', 'ls', 'vol'] 
                 self.sigma_th = 3
-                self.c_ls = 3.5
-                self.c_vol = 18.0
+                self.c_ls = 12.0
+                self.c_vol = 20.0
                 self.ts_dict = self.detector(df['X(t)'])
                 ct_anomaly = zeros(len(self.ts_dict['th']))
                 for key in self.analysis:
@@ -40,8 +38,8 @@ class Anomaly_detection():
                 ct += 1
                 self.analysis = ['th', 'ls', 'vol'] 
                 self.sigma_th = 3
-                self.c_ls = 3.5
-                self.c_vol = 18.0
+                self.c_ls = 12.0
+                self.c_vol = 20.0
                 self.sr_dict = self.detector(df['sr'])
                 for key in self.analysis:
                     # aux0  = logical_or(aux0, self.ts_dict[key])
@@ -53,7 +51,7 @@ class Anomaly_detection():
                 ct += 1
                 self.analysis = ['th', 'ls'] 
                 self.sigma_th = 3
-                self.c_ls = 4.0
+                self.c_ls = 12.0
                 self.trend_dict = self.detector(df['trend'])
                 for key in self.analysis:
                     # aux1  = logical_or(aux1, self.trend_dict[key])
@@ -65,7 +63,7 @@ class Anomaly_detection():
                 ct += 1
                 self.analysis = ['th', 'ls'] 
                 self.sigma_th = 3
-                self.c_ls = 3.5
+                self.c_ls = 8.0
                 self.seasonal_dict = self.detector(df['seasonal'])
 
                 for key in self.analysis:
@@ -78,7 +76,7 @@ class Anomaly_detection():
                 ct += 1
                 self.analysis = ['th', 'vol'] 
                 self.sigma_th = 4
-                self.c_vol = 6.0
+                self.c_vol = 18.0
                 self.resid_dict = self.detector(df['resid'])
 
                 for key in self.analysis:
@@ -177,7 +175,7 @@ if __name__ == "__main__":
     P = angle(X_FFT)
     L = log(A)
     q = 3
-    hq = ones(q)/q**2
+    hq = ones(q)/q
     R = L - convolve(L,hq, 'same')
     S = abs(ifft(exp(R + 1j*P))**2)
 
