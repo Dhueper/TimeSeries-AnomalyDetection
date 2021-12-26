@@ -90,7 +90,7 @@ def period_est(t, xs):
     plt.figure()
     plt.plot(N_vec, E)
     plt.xlabel('N')
-    plt.ylabel('E')
+    plt.ylabel('E', )
     plt.show()
 
     return N_vec[np.argmin(E)] 

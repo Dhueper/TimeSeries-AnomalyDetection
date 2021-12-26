@@ -315,64 +315,64 @@ if __name__ == "__main__":
 
     #--- NASA anomalies ---
     #  
-    path = os.getcwd() + '/test_NASA'
-    dir_list = os.listdir(path)
+    # path = os.getcwd() + '/test_NASA'
+    # dir_list = os.listdir(path)
 
-    f_anomalies = open("NASA_anomalies.txt", 'r')
-    dict_an = {} 
-    L = len(f_anomalies.readlines())
-    f_anomalies.seek(0)
-    for i in range(0,L):
-        line = f_anomalies.readline().split(";")
-        dict_an[line[0]] = json.loads(line[1].split("\n")[0])
-    f_anomalies.close()
-    keys = dict_an.keys()
+    # f_anomalies = open("NASA_anomalies.txt", 'r')
+    # dict_an = {} 
+    # L = len(f_anomalies.readlines())
+    # f_anomalies.seek(0)
+    # for i in range(0,L):
+    #     line = f_anomalies.readline().split(";")
+    #     dict_an[line[0]] = json.loads(line[1].split("\n")[0])
+    # f_anomalies.close()
+    # keys = dict_an.keys()
 
-    f = open('results.txt', 'w')
-    f.write('NASA telemetry data: \n')
-    f.write('--- Major = 3, significant = 2, minor = 1, not found = 0--- \n')
-    f.write('\n')
-    val_ct = 0
-    ct = 0
-    major_ct = 0
-    significant_ct = 0
-    minor_ct = 0
-    method_ct = {'ts':0, 'sr':0, 'trend':0, 'seasonal':0, 'resid':0} 
-    for dir_file in dir_list:
-        key = dir_file.split(".")[0]
-        if key in keys:
-            ct += 1
-            begin = []
-            end = []  
-            for an in dict_an[key] : 
-                begin.append(an[0])
-                end.append(an[1])
-            print('Anomaly' + str(ct)+ ' (' + key + ')' + ':',begin,'-',end)
+    # f = open('results.txt', 'w')
+    # f.write('NASA telemetry data: \n')
+    # f.write('--- Major = 3, significant = 2, minor = 1, not found = 0--- \n')
+    # f.write('\n')
+    # val_ct = 0
+    # ct = 0
+    # major_ct = 0
+    # significant_ct = 0
+    # minor_ct = 0
+    # method_ct = {'ts':0, 'sr':0, 'trend':0, 'seasonal':0, 'resid':0} 
+    # for dir_file in dir_list:
+    #     key = dir_file.split(".")[0]
+    #     if key in keys:
+    #         ct += 1
+    #         begin = []
+    #         end = []  
+    #         for an in dict_an[key] : 
+    #             begin.append(an[0])
+    #             end.append(an[1])
+    #         print('Anomaly' + str(ct)+ ' (' + key + ')' + ':',begin,'-',end)
 
-            value, best_detection = main(path + '/' + dir_file, False, begin, end)
-            val_ct += value
-            if value >= 2.5:
-                major_ct += 1
-            elif value >= 1.5:
-                significant_ct += 1
-            elif value >= 0.5:
-                minor_ct += 1
-            for method in best_detection:
-                method_ct[method] += 1 
-            print('Value:', value)
-            print('Detected by:', best_detection, '\n')
-            f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + ', ' + str(best_detection) + '\n')
+    #         value, best_detection = main(path + '/' + dir_file, False, begin, end)
+    #         val_ct += value
+    #         if value >= 2.5:
+    #             major_ct += 1
+    #         elif value >= 1.5:
+    #             significant_ct += 1
+    #         elif value >= 0.5:
+    #             minor_ct += 1
+    #         for method in best_detection:
+    #             method_ct[method] += 1 
+    #         print('Value:', value)
+    #         print('Detected by:', best_detection, '\n')
+    #         f.write(str(ct) + ') ' + dir_file + ', ' + str(value) + ', ' + str(best_detection) + '\n')
 
-    print('Result:', val_ct, '/', 3*ct)
-    f.write('\n')
-    f.write('Result: ' + str(val_ct) + '/' + str(3*ct))
-    f.write('\n')
-    f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
-    f.write('\n')
-    for method in method_ct.keys():
-        f.write(method + ': ' + str(method_ct[method]))
-        f.write('    ')
-    f.close()
+    # print('Result:', val_ct, '/', 3*ct)
+    # f.write('\n')
+    # f.write('Result: ' + str(val_ct) + '/' + str(3*ct))
+    # f.write('\n')
+    # f.write('Major: ' + str(major_ct) + ', Significant: ' + str(significant_ct) + ', Minor: ' + str(minor_ct))
+    # f.write('\n')
+    # for method in method_ct.keys():
+    #     f.write(method + ': ' + str(method_ct[method]))
+    #     f.write('    ')
+    # f.close()
 
 
 
@@ -380,7 +380,7 @@ if __name__ == "__main__":
     # value, best_detection = main("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt", True, 27862, 27932)
     # value, best_detection = main("UCR_Anomaly_FullData/098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt", True, 4150, 4199)
     # value, best_detection = main("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt", True, [5988] ,[6085])
-    # value, best_detection = main("test_NASA/G-1.npy", True,[4770] ,[4890])
+    value, best_detection = main("test_NASA/G-1.npy", True,[4770] ,[4890])
     # value, best_detection = main("UCR_Anomaly_FullData/250_UCR_Anomaly_weallwalk_2951_7290_7296.txt", True, [7290], [7296])
 
     # print(value, best_detection)
