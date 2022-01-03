@@ -163,28 +163,35 @@ class Anomaly_detection():
 if __name__ == "__main__":
     import test_function
     from matplotlib import pyplot as plt
-    [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt")
+    # [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt")
     # [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt") 
+    [t, X] = test_function.load_npy("test_NASA/G-1.npy") 
+
+    plt.figure()
+    plt.plot(t,X, 'g')
 
     # t = t[27000:29000] 
     # X = X[27000:29000] 
 
-    for i in range(1,10):
-        for j in range(1,len(X)-1):
-            X[j] = (X[j-1] + 2*X[j] + X[j+1])/4    
+    # for i in range(1,10):
+    #     for j in range(1,len(X)-1):
+    #         X[j] = (X[j-1] + 2*X[j] + X[j+1])/4    
 
     X_FFT = fft(X)
-    A = abs(X_FFT)
+    A = abs(X_FFT) + 1e-8
     P = angle(X_FFT)
     L = log(A)
     q = 3
     hq = ones(q)/q
     R = L - convolve(L,hq, 'same')
     S = abs(ifft(exp(R + 1j*P))**2)
+    S2 = abs(ifft(exp( 1j*(P - convolve(P,hq, 'same'))))**1)
 
     plt.figure()
     plt.plot(t, S, 'b')
-    # plt.plot(t, X, 'r')
+    
+    plt.figure()
+    plt.plot(t,S2, 'r')
     plt.show()
 
         

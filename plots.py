@@ -1,6 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.fft import fft, fftfreq, ifft
+from adtk.transformer import DoubleRollingAggregate
+from adtk.visualization import plot
+import pandas as pd
 
 import test_function
 
@@ -37,6 +40,18 @@ def period_est(t, xs):
 
     return N_vec, E
 
+def spectral_residual(X, c):
+    X_FFT = fft(X)
+    A = abs(X_FFT) + 1e-8
+    P = np.angle(X_FFT)
+    L = np.log(A)
+    q = 3
+    hq = np.ones(q)/q
+    R = L - np.convolve(L,hq, 'same')
+    S = abs(ifft(np.exp(R + 1j*P))**c)
+
+    return S
+
 if __name__ == "__main__":
     
     #Periodic gain
@@ -71,21 +86,102 @@ if __name__ == "__main__":
     # plt.show()
 
     #Period estimation
-    [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
+    # [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
 
-    N_vec, E = period_est(t, X)
+    # N_vec, E = period_est(t, X)
+
+    # plt.figure()
+    # plt.plot(t, X)
+    # plt.xlabel('$\it{t}$ (s)', fontsize = 18)
+    # plt.ylabel('$\it{X}$', fontsize = 18, rotation=0)
+    # plt.xticks(fontsize = 18)
+    # plt.yticks(fontsize = 18)
+
+    # plt.figure()
+    # plt.plot(N_vec, E)
+    # plt.xlabel('$\it{N}$', fontsize = 18)
+    # plt.ylabel('$\it{E}$', fontsize = 18, rotation=0)
+    # plt.xticks(fontsize = 18)
+    # plt.yticks(fontsize = 18)
+    # plt.show()
+
+    #Anomalies
+    # [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/185_UCR_Anomaly_resperation11_58000_110800_110801.txt")
+    # [t, X] = test_function.load_npy("test_NASA/A-2.npy") 
+
+    # plt.figure()
+    # plt.plot(t, X)
+    # plt.xlabel('$\it{t}$ (s)', fontsize = 18)
+    # plt.ylabel('$\it{X}$', fontsize = 18, rotation=0)
+    # plt.xticks(fontsize = 18)
+    # plt.yticks(fontsize = 18)
+    # plt.show()
+
+    #Transformers 
+    #--- Spectral residual --- 
+    # [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/185_UCR_Anomaly_resperation11_58000_110800_110801.txt")
+    # X = X[108000:114000]
+    # t = t[108000:114000]  
+
+    # SR = spectral_residual(X,2)
+
+    # plt.figure()
+    # plt.plot(t[3:-3] , SR[3:-3] )
+    # plt.xlabel('$\it{t}$ (s)', fontsize = 18)
+    # plt.ylabel('$\it{SR}$', fontsize = 18, rotation=0)
+    # plt.xticks(fontsize = 18)
+    # plt.yticks(fontsize = 18)
+    # plt.show()
+
+    #--- Double rolling aggregate (median) --- 
+    # [t, X] = test_function.load_npy("test_NASA/P-15.npy") 
+
+    # datetime = pd.to_datetime(list(t), unit="s")
+
+    # time_series = np.transpose(np.array([t,X]))
+
+    # df = pd.DataFrame(time_series, columns=["time", "X(t)"]) 
+
+    # df["datetime"] = datetime 
+
+    # df.set_index("datetime", inplace=True) 
+
+    # s_transformed = DoubleRollingAggregate(
+    # agg="median",
+    # window=5,
+    # diff="diff").transform(df['X(t)'])
+
+    # plt.figure()
+    # plt.plot(t, s_transformed)
+    # plt.xlabel('$\it{t}$ (s)', fontsize = 18)
+    # plt.ylabel('$\it{Double Rolling Aggregate (median)}$', fontsize = 18, rotation=90)
+    # plt.xticks(fontsize = 18)
+    # plt.yticks(fontsize = 18)
+    # plt.show()
+
+    #--- Double rolling aggregate (quantile) ---
+    [t, X] = test_function.load_npy("test_NASA/P-3.npy") 
+
+    datetime = pd.to_datetime(list(t), unit="s")
+
+    time_series = np.transpose(np.array([t,X]))
+
+    df = pd.DataFrame(time_series, columns=["time", "X(t)"]) 
+
+    df["datetime"] = datetime 
+
+    df.set_index("datetime", inplace=True) 
+
+    s_transformed = DoubleRollingAggregate(
+    agg="quantile",
+    agg_params={"q": [0.1, 0.5, 0.9]},
+    window=250,
+    diff="l2").transform(df['X(t)'])
 
     plt.figure()
-    plt.plot(t, X)
+    plt.plot(t, s_transformed)
     plt.xlabel('$\it{t}$ (s)', fontsize = 18)
-    plt.ylabel('$\it{X}$', fontsize = 18, rotation=0)
+    plt.ylabel('$\it{Double Rolling Aggregate (quantile)}$', fontsize = 18, rotation=90)
     plt.xticks(fontsize = 18)
     plt.yticks(fontsize = 18)
-
-    plt.figure()
-    plt.plot(N_vec, E)
-    plt.xlabel('$\it{N}$', fontsize = 18)
-    plt.ylabel('$\it{E}$', fontsize = 18, rotation=0)
-    plt.xticks(fontsize = 18)
-    plt.yticks(fontsize = 18)
-    plt.show()
+    plt.show() 

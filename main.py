@@ -380,7 +380,7 @@ if __name__ == "__main__":
     # value, best_detection = main("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt", True, 27862, 27932)
     # value, best_detection = main("UCR_Anomaly_FullData/098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt", True, 4150, 4199)
     # value, best_detection = main("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt", True, [5988] ,[6085])
-    value, best_detection = main("test_NASA/G-1.npy", True,[4770] ,[4890])
+    # value, best_detection = main("test_NASA/G-1.npy", True,[4770] ,[4890])
     # value, best_detection = main("UCR_Anomaly_FullData/250_UCR_Anomaly_weallwalk_2951_7290_7296.txt", True, [7290], [7296])
 
     # print(value, best_detection)
