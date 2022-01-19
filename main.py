@@ -450,9 +450,24 @@ def user_examples(N):
 
         print('Example 5: Spectral residual transformation.')
 
+        # [t, X] = test_function.load_npy("P-11.npy")
+        [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/159_UCR_Anomaly_TkeepSecondMARS_3500_9330_9340.txt")
+ 
+        plot(t,X)
+
+        S = spectral_residual(X, 2)
+
+        plt.figure()
+        plt.plot(t, S, 'g')
+        plt.xlabel("t")
+        plt.ylabel("S", rotation=0)
+        plt.title('Spectral residual transformation')
+
+        plt.show()
+
 
     def example_invalid():
-        print('Invalid case selected. Select an example from 1 to 8.')
+        print('Invalid case selected. Select an example from 1 to 7.')
 
 
     #Switch case dictionary 
@@ -472,11 +487,10 @@ if __name__ == "__main__":
     5) Spectral residual transformation.
     6) Anomaly detection with ADTK.
     7) Time series decomposition and anomaly detection.
-    8) Optimized detection algorithm.
     """
 
     # option = input("Select an example from 1 to 7: ")
-    option = 4
+    option = 5
 
     user_examples(int(option)) 
 
