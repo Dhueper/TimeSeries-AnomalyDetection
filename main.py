@@ -36,8 +36,8 @@ def main(filename, plot_figures, begin, end):
     # [t, X] = test_function.load_npy("P-11.npy") 
     # [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
 
-    # [t, X] = test_function.read_UCR(filename)
-    [t, X] = test_function.load_npy(filename) 
+    [t, X] = test_function.read_UCR(filename)
+    # [t, X] = test_function.load_npy(filename) 
 
     #Original time series plot
     if plot_figures:
@@ -160,7 +160,7 @@ def main(filename, plot_figures, begin, end):
     #%% Anomaly detection
     #labels to detect anomalies: "ts" (whole time series), "trend", "seasonal", "resid", 
     labels = ["ts", "trend", "seasonal", "resid", "sr"] 
-    anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=plot_figures)
+    anomaly = ts_anomalies.Anomaly_detection(df_anomaly, labels, plot_anomalies=False)
 
     if plot_figures:
         plt.figure()
@@ -498,12 +498,27 @@ def user_examples(N):
         plt.show()
 
 
+    def example7():
+        """Time series decomposition and anomaly detection with ADTK.
+
+        Intent(in): None
+
+        Returns: None
+        """
+
+        print('Example 7: Time series decomposition and anomaly detection with ADTK.')
+
+        value, best_detection = main("UCR_Anomaly_FullData/098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt", True, [4150], [4199])
+
+        print('Value:',value,'/3,  Best detection:', best_detection)
+
+
     def example_invalid():
         print('Invalid case selected. Select an example from 1 to 7.')
 
 
     #Switch case dictionary 
-    switcher = {1: example1, 2:example2, 3:example3, 4:example4, 5:example5, 6:example6}
+    switcher = {1: example1, 2:example2, 3:example3, 4:example4, 5:example5, 6:example6, 7:example7}
     #Get the function from switcher dictionary  
     example = switcher.get(N, example_invalid)
 
@@ -518,11 +533,11 @@ if __name__ == "__main__":
     4) Time series decomposition: MVD.
     5) Spectral residual transformation.
     6) Anomaly detection with ADTK.
-    7) Time series decomposition and anomaly detection.
+    7) Time series decomposition and anomaly detection with ADTK.
     """
 
     # option = input("Select an example from 1 to 7: ")
-    option = 6
+    option = 7
 
     user_examples(int(option)) 
 
