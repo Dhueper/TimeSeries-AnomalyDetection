@@ -1,9 +1,10 @@
 import time
 import os
+import sys
 import json
 
-from numpy import array, transpose, zeros, std, mean, load, linspace, log, exp, ones, angle, convolve, sqrt
-from scipy.fft import fft, ifft
+from numpy import array, transpose, zeros, std, mean, load, linspace, log, exp, ones, angle, convolve, sqrt, pi, sum, argmin, asfortranarray
+from scipy.fft import fft, ifft, fftfreq
 import pandas as pd
 from matplotlib import pyplot as plt
 
@@ -11,9 +12,17 @@ from adtk.data import validate_series
 
 # from tsfresh import extract_features
 
+try:
+    sys.path.insert(1, '/'.join(os.path.dirname(os.path.abspath(__file__)).split('/'))+'/fortran_interface')
+    import fortran_ts
+except:
+    sys.path.insert(1, '/'.join(os.path.dirname(os.path.abspath(__file__)).split('\\'))+'/fortran_interface')
+    import fortran_ts
+
 import test_function
 import ts_analysis
 import ts_anomalies
+import plots
 
 #%% Time series definition
 
@@ -260,8 +269,133 @@ def spectral_residual(X, c):
 
     return S
 
+def user_examples(N):
+    """Pre-defined examples to introduce a new user for time series analysis:
+    1) Noise reduction.
+    2) Period estimation.
+    3) Time series decomposition: STL.
+    4) Time series decomposition: MVD.
+    5) Anomaly detection with ADTK.
+    6) Time series decomposition and anomaly detection.
+    7) Optimized detection algorithm.
+    
+
+    Intent(in): N(integer), example selected;
+
+    Returns: None
+    """
+    def plot(t,X):
+        plt.figure()
+        plt.plot(t,X)
+        plt.xlabel('t')
+        plt.ylabel('X(t)')
+        plt.title('Original time series')
+
+    def example1():
+        """Time series noise reduction.
+
+        Intent(in): None
+
+        Returns: None
+        """
+
+        [t, X] = test_function.solar_power_sso(1) 
+        plot(t,X)
+
+        #Noise Mean Value Filter
+        Y = zeros(len(X))
+        Y[:] = X[:]  
+        for _ in range(0,10):
+            Y = fortran_ts.time_series.mvf(asfortranarray(Y), 2)
+            Y[0] = 2*Y[1] - Y[2] 
+            Y[len(Y)-1] = 2*Y[len(Y)-2] - Y[len(Y)-3] 
+
+        plt.figure()
+        plt.subplot(2,1,1)
+        plt.plot(t,Y, 'g')
+        plt.title('Noiseless time series')
+        plt.xlabel('t')
+        plt.ylabel('Y(t)', rotation=0)
+        plt.subplot(2,1,2)
+        plt.plot(t, X-Y, 'r')
+        plt.title('Noise')
+        plt.xlabel('t')
+        plt.ylabel('N(t)', rotation=0)
+        
+        plt.show()
+
+    def example2():
+        """Time series period estimation.
+
+        Intent(in): None
+
+        Returns: None
+        """
+        [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
+        plot(t,X)
+
+        #Period estimation 
+        Ns = len(t)
+        delta_t = t[1] - t[0]  
+
+        dxs = zeros(Ns)
+        dxs[0] = (X[1] - X[0])/delta_t
+        dxs[Ns-1] = (X[Ns-1] - X[Ns-2])/delta_t
+        for i in range(1,Ns-1):
+            dxs[i] = (X[i+1] - X[i-1])/(2*delta_t) 
+
+        N_vec = array([i for i in range(8,Ns//10)])
+        E = [] 
+        for N in N_vec: 
+
+            #First N samples 
+            x = X[0:N] 
+            dx = dxs[0:N] 
+
+            #Spectral domain
+            xf = fft(x, N)
+            f = fftfreq(N,delta_t)  
+
+            dx_spec = ifft(2*pi*f*1j*xf, N).real 
+
+            #Error 
+            E.append(sqrt(sum((dx - dx_spec)**2.) / N))
+
+        plt.figure()
+        plt.plot(N_vec, E)
+        plt.xlabel("N")
+        plt.ylabel("E", rotation=0)
+        plt.title('Error as a function of the number of samples N')
+        plt.show()
+
+        print('The period (measured in number of points) is:', N_vec[argmin(E)])
+
+
+    #Switch case dictionary 
+    switcher = {1: example1, 2:example2}
+    #Get the function from switcher dictionary  
+    example = switcher.get(N, 'Invalid number')
+
+    return example()
+
 
 if __name__ == "__main__":
+    """ Select an introductory pre-defined example:
+    1) Noise reduction.
+    2) Period estimation.
+    3) Time series decomposition: STL.
+    4) Time series decomposition: MVD.
+    5) Anomaly detection with ADTK.
+    6) Time series decomposition and anomaly detection.
+    7) Optimized detection algorithm.
+    """
+
+    # option = input("Select an example from 1 to 5: ")
+    option = 1
+
+    user_examples(int(option)) 
+
+
     #--- UCR anomalies ---
     #  
     # path = os.getcwd() + '/UCR_Anomaly_FullData'
