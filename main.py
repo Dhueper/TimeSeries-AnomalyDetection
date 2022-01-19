@@ -466,12 +466,44 @@ def user_examples(N):
         plt.show()
 
 
+    def example6():
+        """Anomaly detection with ADTK.
+
+        Intent(in): None
+
+        Returns: None
+        """
+
+        print('Example 6: Anomaly detection with ADTK.')
+
+        [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/145_UCR_Anomaly_Lab2Cmac011215EPG1_5000_17210_17260.txt")
+        t = t[16000:19000]
+        X = X[16000:19000]  
+        plot(t,X)
+
+        datetime = pd.to_datetime(list(t), unit="s")
+
+        id_column = zeros(len(t))
+        time_series = transpose(array([t,X,id_column]))
+
+        df = pd.DataFrame(time_series, columns=["time", "X(t)", "id"]) 
+
+        df["datetime"] = datetime 
+
+        df.set_index("datetime", inplace=True) 
+
+        labels = ["ts"] 
+        anomaly = ts_anomalies.Anomaly_detection(df, labels, plot_anomalies=True)
+
+        plt.show()
+
+
     def example_invalid():
         print('Invalid case selected. Select an example from 1 to 7.')
 
 
     #Switch case dictionary 
-    switcher = {1: example1, 2:example2, 3:example3, 4:example4, 5:example5}
+    switcher = {1: example1, 2:example2, 3:example3, 4:example4, 5:example5, 6:example6}
     #Get the function from switcher dictionary  
     example = switcher.get(N, example_invalid)
 
@@ -490,7 +522,7 @@ if __name__ == "__main__":
     """
 
     # option = input("Select an example from 1 to 7: ")
-    option = 5
+    option = 6
 
     user_examples(int(option)) 
 
