@@ -299,6 +299,8 @@ def user_examples(N):
         Returns: None
         """
 
+        print('Example 1: Noise reduction filter.')
+
         [t, X] = test_function.solar_power_sso(1) 
         plot(t,X)
 
@@ -331,6 +333,9 @@ def user_examples(N):
 
         Returns: None
         """
+
+        print('Example 2: Time series period estimation.')
+
         [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
         plot(t,X)
 
@@ -371,10 +376,89 @@ def user_examples(N):
         print('The period (measured in number of points) is:', N_vec[argmin(E)])
 
 
+    def example3():
+        """Time series decomposition with STL method.
+
+        Intent(in): None
+
+        Returns: None
+        """
+
+        print('Example 3: Time series decomposition with STL.')
+
+        [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt")
+        t = t[0:2000]
+        X = X[0:2000]  
+        plot(t,X)
+
+        datetime = pd.to_datetime(list(t), unit="s")
+
+        id_column = zeros(len(t))
+        time_series = transpose(array([t,X,id_column]))
+
+        df = pd.DataFrame(time_series, columns=["time", "X(t)", "id"]) 
+
+        df["datetime"] = datetime 
+
+        df.set_index("datetime", inplace=True) 
+
+        #  STL decomposition
+        decomposition, period = ts_analysis.ts_decomposition(df, plot=True, method='STL', noise_filter=True) 
+
+        plt.show()
+
+
+    def example4():
+        """Time series decomposition with MVD method.
+
+        Intent(in): None
+
+        Returns: None
+        """
+
+        print('Example 4: Time series decomposition with MVD.')
+
+        [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/146_UCR_Anomaly_Lab2Cmac011215EPG2_5000_27862_27932.txt")
+        t = t[0:2000]
+        X = X[0:2000]  
+        plot(t,X)
+
+        datetime = pd.to_datetime(list(t), unit="s")
+
+        id_column = zeros(len(t))
+        time_series = transpose(array([t,X,id_column]))
+
+        df = pd.DataFrame(time_series, columns=["time", "X(t)", "id"]) 
+
+        df["datetime"] = datetime 
+
+        df.set_index("datetime", inplace=True) 
+
+        #  STL decomposition
+        decomposition, period = ts_analysis.ts_decomposition(df, plot=True, method='mean_value', noise_filter=True) 
+
+        plt.show()
+
+
+    def example5():
+        """Spectral residual transformation.
+
+        Intent(in): None
+
+        Returns: None
+        """
+
+        print('Example 5: Spectral residual transformation.')
+
+
+    def example_invalid():
+        print('Invalid case selected. Select an example from 1 to 8.')
+
+
     #Switch case dictionary 
-    switcher = {1: example1, 2:example2}
+    switcher = {1: example1, 2:example2, 3:example3, 4:example4, 5:example5}
     #Get the function from switcher dictionary  
-    example = switcher.get(N, 'Invalid number')
+    example = switcher.get(N, example_invalid)
 
     return example()
 
@@ -385,13 +469,14 @@ if __name__ == "__main__":
     2) Period estimation.
     3) Time series decomposition: STL.
     4) Time series decomposition: MVD.
-    5) Anomaly detection with ADTK.
-    6) Time series decomposition and anomaly detection.
-    7) Optimized detection algorithm.
+    5) Spectral residual transformation.
+    6) Anomaly detection with ADTK.
+    7) Time series decomposition and anomaly detection.
+    8) Optimized detection algorithm.
     """
 
-    # option = input("Select an example from 1 to 5: ")
-    option = 1
+    # option = input("Select an example from 1 to 7: ")
+    option = 4
 
     user_examples(int(option)) 
 

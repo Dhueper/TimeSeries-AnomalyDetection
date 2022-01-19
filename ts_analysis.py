@@ -321,8 +321,8 @@ class Mean_value_decomposition():
         max_index = max_mean.index(max(max_mean))
 
         for i in range(0,3):
-            # if i != max_index and max_components[i] < 0.05*max_mean[max_index]:
-            if i != max_index and max_components[i] < 0.1*max_mean[max_index]:
+            if i != max_index and max_components[i] < 0.01*max_mean[max_index]:
+            # if i != max_index and max_components[i] < 0.1*max_mean[max_index]:
                 components[max_index] = components[max_index] + components[i]
                 components[i] = zeros(self.M)
 
