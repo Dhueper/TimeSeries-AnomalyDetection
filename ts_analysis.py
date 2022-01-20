@@ -22,13 +22,14 @@ def ts_decomposition(df,**kwargs):
     """Time series decomposition in trend, seasonal/cyclic variations
     and irregular variations.
 
-        Intent(in): df(pandas DataFrame), time series;
+    Intent(in): 
+        df(pandas DataFrame), time series;
         kwargs (optional): period(integer), time series period;
         plot(boolean), plot results, default = True;
         method(string), method used for decomposition, 'seasonal_decompose', 'STL' (default), 'mean_value' or 'CNN';
         noise_filter(boolean), apply noise reduction through mean value decomposition, default=False.
 
-        Returns: decomposition(statsmodels class), time series decomposed in .trend, .seasonal and .resid
+    Returns: decomposition(statsmodels class), time series decomposed in .trend, .seasonal and .resid
     """
 
 
@@ -180,11 +181,11 @@ def period_est(t, xs):
 class Fourier():
     """Frequency domain analysis through FFT.
     
-            Intent(in): 
-            t (numpy.array), timestamps;
-            X (numpy.array), time series.
+    Intent(in): 
+        t (numpy.array), timestamps;
+        X (numpy.array), time series.
 
-            Attributes: Xf (FFT), f (frequencies), Xf_max (max(Xf)) and f_th (threshold frequency).
+    Attributes: Xf (FFT), f (frequencies), Xf_max (max(Xf)) and f_th (threshold frequency).
          """
     def __init__(self,t,X):
         self.Xf = fft(X)
@@ -212,11 +213,11 @@ class Fourier():
 class Mean_value_decomposition():
     """Time series decomposition through n recurrent mean value filters.
     
-            Intent(in): 
-            X (numpy.array), time series;
-            n (integer), times the recursive filter is applied.
+    Intent(in): 
+        X (numpy.array), time series;
+        n (integer), times the recursive filter is applied.
 
-            Attributes: trend, seasonal and resid.
+    Attributes: trend, seasonal and resid.
          """
 
     def __init__(self, X, n, period, t, noise_filter, f_th, CNN_filter):
@@ -334,19 +335,21 @@ class Mean_value_decomposition():
         """Time series filter based on the mean value theorem and a discrete integration rule:
         alpha=1 (linear), alpha=2 (quadratic).
 
+        Input:
             X (numpy.array), time series;
             trend (bool), True if the trend is to be computed;
             alpha (float), order of the filter.
 
-            Returns: Y (numpy.array), filtered time series.
+        Returns: Y (numpy.array), filtered time series.
         """
 
         def f_var(x, Y, j): 
             """ Computes the difference between the variance and the second derivative with and without an end-point. 
 
-            x (float), end point;
-            Y (numpy.array), time series without end points;
-            j (integer), index of array Y.
+            Input:
+                x (float), end point;
+                Y (numpy.array), time series without end points;
+                j (integer), index of array Y.
 
             Returns: delta_abs (float), difference between variances and second derivatives.
             """
@@ -369,6 +372,7 @@ class Mean_value_decomposition():
         #     # Y[i] = (X[i-1] + 2*alpha*X[i] + X[i+1])/(2. * (alpha+1)) 
         #     Y[i] = a1*X[i-1] + a0*X[i] + a1*X[i+1]
 
+        # Optimized fortran solution 
         Y = fortran_ts.time_series.mvf(asfortranarray(X), alpha)
         
         if trend: # Trend decomposition 

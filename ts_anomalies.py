@@ -12,10 +12,6 @@ class Anomaly_detection():
         self.anomaly_color ={'th':'red', 'ls':'orange', 'vol':'green'} 
         self.master_dict = {} 
         ct = 0
-        # aux0 = array([False for _ in range(0,len(df['X(t)']))])
-        # aux1 = array([False for _ in range(0,len(df['X(t)']))]) 
-        # aux2 = array([False for _ in range(0,len(df['X(t)']))])
-        # aux3 = array([False for _ in range(0,len(df['X(t)']))])
         ct_anomaly = zeros(len(df['X(t)']))
         for tag in labels:
             if tag == "ts":
@@ -25,9 +21,7 @@ class Anomaly_detection():
                 self.c_ls = 15.0
                 self.c_vol = 20.0
                 self.ts_dict = self.detector(df['X(t)'])
-                # ct_anomaly = zeros(len(self.ts_dict['th']))
                 for key in self.analysis:
-                    # aux0  = logical_or(aux0, self.ts_dict[key])
                     for i in range(int(len(ct_anomaly)/20),int(19*len(ct_anomaly)/20)):
                         if self.ts_dict[key][i] == True:
                             ct_anomaly[i] += 1
@@ -41,13 +35,9 @@ class Anomaly_detection():
                 self.c_ls = 12.0
                 self.c_vol = 20.0
                 self.sr_dict = self.detector(df['sr'])
-                anomaly_list = array([False for _ in range(0,len(ct_anomaly))])
                 for key in self.analysis:
-                    # anomaly_list = anomaly_list | array(self.sr_dict[key], dtype=bool)
-                    # aux0  = logical_or(aux0, self.ts_dict[key])
                     for i in range(int(len(ct_anomaly)/20),int(19*len(ct_anomaly)/20)):
                         if self.sr_dict[key][i] == True:
-                        # if anomaly_list[i] == True: 
                             ct_anomaly[i] += 1
 
             if tag == "trend":
@@ -57,7 +47,6 @@ class Anomaly_detection():
                 self.c_ls = 15.0
                 self.trend_dict = self.detector(df['trend'])
                 for key in self.analysis:
-                    # aux1  = logical_or(aux1, self.trend_dict[key])
                     for i in range(int(len(ct_anomaly)/20),int(19*len(ct_anomaly)/20)):
                         if self.trend_dict[key][i] == True:
                             ct_anomaly[i] += 2
@@ -70,7 +59,6 @@ class Anomaly_detection():
                 self.seasonal_dict = self.detector(df['seasonal'])
 
                 for key in self.analysis:
-                    # aux2 = logical_or(aux2, self.seasonal_dict[key])
                     for i in range(int(len(ct_anomaly)/20),int(19*len(ct_anomaly)/20)):
                         if self.seasonal_dict[key][i] == True:
                             ct_anomaly[i] += 2
@@ -83,15 +71,11 @@ class Anomaly_detection():
                 self.resid_dict = self.detector(df['resid'])
 
                 for key in self.analysis:
-                    # aux3 = logical_or(aux3, self.resid_dict[key]) 
                     for i in range(int(len(ct_anomaly)/20),int(19*len(ct_anomaly)/20)):
                         if self.resid_dict[key][i] == True:
                             ct_anomaly[i] += 1
 
             if ct >= 4:
-                # logical_aux = logical_or(logical_or(logical_and(aux2, aux3), logical_and(aux0, aux2)), logical_and(aux0, aux3))
-                # self.master_dict['major']  = list(logical_or(aux1, logical_aux))
-                # self.master_dict['minor']  = list(logical_or(aux1, logical_or(aux2, aux3)))
 
                 #Major anomaly 
                 if max(ct_anomaly) > 0:
@@ -118,13 +102,18 @@ class Anomaly_detection():
                             self.master_dict['minor'][item]  =  1
                             ct_anomaly[item] = 0
 
-            # tag ={'major':'span', 'minor':'span'} 
-            # color ={'major':'red', 'minor':'green'} 
-            
-            # plot(df['X(t)'], anomaly=self.master_dict, ts_linewidth=1, ts_markersize=3, anomaly_markersize=5, anomaly_color=color, anomaly_tag=tag)
-                
 
     def detector(self,X):
+        """Anomaly detector of threshold, level shift and volatility anomalies.
+
+        Input:
+            self (object);
+            X (numpy.array), time series.
+
+        Returns:
+            ts_dict (dict), dictionary with the detected anomalies in the time series.
+
+        """
         ts = validate_series(X)
         ts_dict = {}  
         #Threshold 
