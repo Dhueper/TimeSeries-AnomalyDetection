@@ -26,15 +26,23 @@ import plots
 
 #%% Time series definition
 
-def main(filename, plot_figures, begin, end, data):
-    # [t, X] = test_function.solar_power_sso(1) 
-    # [t, X] = test_function.sin_function() 
-    # [t, X] = test_function.square_function() 
-    # [t, X] = test_function.cubic_function() 
-    # [t, X] = test_function.test_sine()
-    # [t, X] = test_function.read("20211014.plt") 
-    # [t, X] = test_function.load_npy("P-11.npy") 
-    # [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
+def main(filename, plot_figures=False, begin, end, data):
+    """Main program to execute the analysis, decomposition and anomaly detection
+    in time series. The code is optimized to minimize the time required.
+
+    No need to estimate parameters, everything is calculated automatically.
+
+    Configured for NASA's and UCR's database. 
+    Feel free to add your own anomaly detection database after line 50!
+
+    Input:
+        filename (string), file name with the data;
+        plot_figures (boolean), decides whether to plot the figures or not, 
+        default=False (recommended for large database evaluation);
+        begin (list), list which contains the initial timestamp for each anomaly;
+        end (list), list which contains the final timestamp for each anomaly;
+        data (string), selected database (NASA or UCR).
+    """
 
     if data == "UCR":
         [t, X] = test_function.read_UCR(filename)
@@ -260,6 +268,15 @@ def main(filename, plot_figures, begin, end, data):
     return val, best_detection
 
 def spectral_residual(X, c):
+    """Computes the spectral residual transformation of the time series.
+
+    Input:
+        X (numpy.array), time series;
+        c (integer), exponential factor.
+
+    Returns: S (numpy.array), transformed time series.
+
+    """
     X_FFT = fft(X)
     A = abs(X_FFT) + 1e-8
     P = angle(X_FFT)
@@ -699,3 +716,12 @@ if __name__ == "__main__":
     # value, best_detection = main("UCR_Anomaly_FullData/250_UCR_Anomaly_weallwalk_2951_7290_7296.txt", True, [7290], [7296])
 
     # print(value, best_detection)
+
+    # [t, X] = test_function.solar_power_sso(1) 
+    # [t, X] = test_function.sin_function() 
+    # [t, X] = test_function.square_function() 
+    # [t, X] = test_function.cubic_function() 
+    # [t, X] = test_function.test_sine()
+    # [t, X] = test_function.read("20211014.plt") 
+    # [t, X] = test_function.load_npy("P-11.npy") 
+    # [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
