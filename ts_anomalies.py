@@ -185,7 +185,7 @@ if __name__ == "__main__":
     hq = ones(q)/q
     R = L - convolve(L,hq, 'same')
     S = abs(ifft(exp(R + 1j*P))**2)
-    S2 = abs(ifft(exp( 1j*(P - convolve(P,hq, 'same'))))**1)
+    S2 = abs(ifft(exp( 1j*(P )))**(1))
 
     plt.figure()
     plt.plot(t, S, 'b')
