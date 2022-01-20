@@ -26,7 +26,7 @@ import plots
 
 #%% Time series definition
 
-def main(filename, plot_figures=False, begin, end, data):
+def main(filename, plot_figures, begin, end, data):
     """Main program to execute the analysis, decomposition and anomaly detection
     in time series. The code is optimized to minimize the time required.
 
@@ -37,8 +37,8 @@ def main(filename, plot_figures=False, begin, end, data):
 
     Input:
         filename (string), file name with the data;
-        plot_figures (boolean), decides whether to plot the figures or not, 
-        default=False (recommended for large database evaluation);
+        plot_figures (boolean), decides whether to plot the figures or not 
+        (False recommended for large database evaluation);
         begin (list), list which contains the initial timestamp for each anomaly;
         end (list), list which contains the final timestamp for each anomaly;
         data (string), selected database (NASA or UCR).
@@ -294,9 +294,12 @@ def user_examples(N):
     2) Period estimation.
     3) Time series decomposition: STL.
     4) Time series decomposition: MVD.
-    5) Anomaly detection with ADTK.
-    6) Time series decomposition and anomaly detection.
-    7) Optimized detection algorithm.
+    5) Spectral residual transformation.
+    6) Anomaly detection with ADTK.
+    7) Time series decomposition and anomaly detection with ADTK.
+    8) NASA's anomaly database evaluation (highly time consuming).
+    9) UCR's anomaly database evaluation (highly time consuming).
+    10) Comparison between computational time for python and fortran filter.
     
 
     Intent(in): N(integer), example selected;
@@ -663,12 +666,78 @@ def user_examples(N):
         f.close()
 
 
+    def example10():
+        """Comparison between fortran and python algorithm for Mean Value Filter.
+
+        Intent(in): None
+
+        Returns: None
+        """
+
+        print("Example 10: Comparison between computational time for python and fortran filter.")
+
+        [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/170_UCR_Anomaly_gaitHunt1_18500_33070_33180.txt")
+
+        plot(t,X)
+
+        N = array([i for i in range(0,500)])
+        M = len(X)
+        Y = zeros(M)
+
+        t0 = 0
+        tf = 0
+        t_fortran = []
+        t_python = []  
+
+        alpha = 1
+        a1 = 1./(2*(alpha+1))
+        a0 = alpha/(alpha+1)
+
+        for j in N:
+            #fortran filter 
+            t0 = time.time()
+            Y = fortran_ts.time_series.mvf(asfortranarray(X), alpha)
+            tf = time.time()
+            t_fortran.append(tf-t0)
+
+            #python filter
+            t0 = time.time()
+            for i in range(1,M-1):
+                Y[i] = a1*X[i-1] + a0*X[i] + a1*X[i+1]
+            tf = time.time()
+            t_python.append(tf-t0)
+
+        for i in range(1,len(N)):
+            t_fortran[i] = t_fortran[i] + t_fortran[i-1]   
+            t_python[i] = t_python[i] + t_python[i-1]  
+
+        t_fortran = array(t_fortran)
+        t_python = array(t_python) 
+
+        plt.figure()
+        plt.plot(N,t_fortran,'b')
+        plt.plot(N,t_python,'r')
+        plt.title('Comparison between computational time for N iterations of the filter')
+        plt.xlabel('N iterations')
+        plt.ylabel('t (s)', rotation=0)
+        plt.legend(['Fortran', 'Python'])
+
+        plt.figure()
+        plt.plot(N,t_python/t_fortran,'g')
+        plt.title('Quotient of python and fortran time for N iterations of the filter')
+        plt.xlabel('N iterations')
+        plt.ylabel('r', rotation=0)
+        plt.legend(['t_Python / t_Fortran'])
+
+        plt.show()
+
+
     def example_invalid():
-        print('Invalid case selected. Select an example from 1 to 9.')
+        print('Invalid case selected. Select an example from 1 to 10.')
 
 
     #Switch case dictionary 
-    switcher = {1: example1, 2:example2, 3:example3, 4:example4, 5:example5, 6:example6, 7:example7, 8:example8, 9:example9}
+    switcher = {1: example1, 2:example2, 3:example3, 4:example4, 5:example5, 6:example6, 7:example7, 8:example8, 9:example9, 10:example10}
     #Get the function from switcher dictionary  
     example = switcher.get(N, example_invalid)
 
@@ -686,6 +755,7 @@ if __name__ == "__main__":
     7) Time series decomposition and anomaly detection with ADTK.
     8) NASA's anomaly database evaluation (highly time consuming).
     9) UCR's anomaly database evaluation (highly time consuming).
+    10) Comparison between computational time for python and fortran filter.
     """
 
     print(""" Select an introductory pre-defined example:\n 
@@ -698,9 +768,10 @@ if __name__ == "__main__":
     7) Time series decomposition and anomaly detection with ADTK.\n 
     8) NASA's anomaly database evaluation (highly time consuming).\n 
     9) UCR's anomaly database evaluation (highly time consuming).\n 
+    10) Comparison between computational time for python and fortran filter.\n 
     """)
 
-    option = input("Select an example from 1 to 9: ")
+    option = input("Select an example from 1 to 10: ")
 
     user_examples(int(option))
 
