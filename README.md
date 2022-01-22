@@ -25,6 +25,7 @@ Fortran compiled code for optimization improvement and computational time reduct
 
 NASA's and UCR's database to evaluate the software performances.
 
+### Mean Value Decomposition (MVD)
 ![Original Time Series](Time_series_MVD.png)
 
 ![Decomposed Time Series](MVD_decomposition.png)
