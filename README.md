@@ -40,7 +40,7 @@ Precise anomaly detection through time series decomposition (STL + MVD), spectra
 ![Detected Anomaly](Figures/Anomay_detection.png)
 
 
-## Universidad Politécnica de Madrid (UPM) - Technical UNiversity of Madrid
+## Universidad Politécnica de Madrid (UPM) - Technical University of Madrid
 ## Master Universitario en Sistemas Espaciales (MUSE) - Master Degree in Space Systems
 ## Instituto Ignacio Da Riva (IDR)
 #### Developed by: David Huergo 
