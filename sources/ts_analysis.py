@@ -140,6 +140,7 @@ def ts_decomposition(df,**kwargs):
         plt.xlabel('t')
         plt.title('Irregular variations') 
 
+
         if noise_filter:
             plt.plot(t,noiseless.resid, linewidth=1)
             plt.title('Irregular variations + noise') 

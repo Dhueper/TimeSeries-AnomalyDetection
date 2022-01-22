@@ -397,13 +397,13 @@ def user_examples(N):
 
         plt.figure()
         plt.plot(N_vec, E)
-        plt.xlabel("N")
-        plt.ylabel("E", rotation=0)
         plt.title('Error as a function of the number of samples N')
+        plt.xlabel('N samples')
+        plt.ylabel('Error')
+
         plt.show()
 
         print('The period (measured in number of points) is:', N_vec[argmin(E)])
-
 
     def example3():
         """Time series decomposition with STL method.
@@ -436,7 +436,6 @@ def user_examples(N):
 
         plt.show()
 
-
     def example4():
         """Time series decomposition with MVD method.
 
@@ -468,7 +467,6 @@ def user_examples(N):
 
         plt.show()
 
-
     def example5():
         """Spectral residual transformation.
 
@@ -493,7 +491,6 @@ def user_examples(N):
         plt.title('Spectral residual transformation')
 
         plt.show()
-
 
     def example6():
         """Anomaly detection with ADTK.
@@ -524,8 +521,8 @@ def user_examples(N):
         labels = ["ts"] 
         anomaly = ts_anomalies.Anomaly_detection(df, labels, plot_anomalies=True)
 
-        plt.show()
 
+        plt.show()
 
     def example7():
         """Time series decomposition and anomaly detection with ADTK.
@@ -540,7 +537,6 @@ def user_examples(N):
         value, best_detection = main("UCR_Anomaly_FullData/098_UCR_Anomaly_NOISEInternalBleeding16_1200_4187_4199.txt", True, [4150], [4199], "UCR")
 
         print('Value:',value,'/3,  Best detection:', best_detection)
-
 
     def example8():
         """NASA's anomaly database evaluation.
@@ -613,7 +609,6 @@ def user_examples(N):
             f.write('    ')
         f.close()
 
-
     def example9():
         """UCR's anomaly database evaluation.
 
@@ -671,7 +666,6 @@ def user_examples(N):
             f.write(method + ': ' + str(method_ct[method]))
             f.write('    ')
         f.close()
-
 
     def example10():
         """Comparison between fortran and python algorithm for Mean Value Filter.
@@ -738,7 +732,6 @@ def user_examples(N):
 
         plt.show()
 
-
     def example_invalid():
         print('Invalid case selected. Select an example from 1 to 10.')
 
@@ -774,6 +767,7 @@ if __name__ == "__main__":
             run = False
         else:
             user_examples(int(option))
+        run = False
 
 
 
