@@ -8,7 +8,7 @@ An anomaly can be defined as any variation of a time series that deviates from t
 This repository allows to perform different analysis over a time series in order to understand its behaviour and extract the relevant information.
 The main implemented features are the Time Series Decomposition and Anomaly Detection.
 
-For unexperienced users, there are several examples regarding:
+For new users, there are several examples regarding:
   1) Noise reduction.
   2) Period estimation.
   3) Time series decomposition: STL (Seasonal and Trend decomposition using Loess). 
