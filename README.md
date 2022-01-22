@@ -25,7 +25,9 @@ Fortran compiled code for optimization improvement and computational time reduct
 
 NASA's and UCR's database to evaluate the software performances.
 
-![This is an image](Time_series_MVD.png)
+![Original Time Series](Time_series_MVD.png)
+
+![Decomposed Time Series](MVD_decomposition.png)
 
 
 ## Universidad Politécnica de Madrid (UPM) - Technical UNiversity of Madrid
