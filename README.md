@@ -25,12 +25,9 @@ Fortran compiled code for optimization improvement and computational time reduct
 
 NASA's and UCR's database to evaluate the software performances.
 
------
-Universidad Politécnica de Madrid (UPM) - Technical UNiversity of Madrid
------
-Master Universitario en Sistemas Espaciales (MUSE) - Master Degree in Space Systems
------
-Instituto Ignacio Da Riva (IDR)
------
-Developed by: David Huergo 
-Supervised by: Juan Antonio Hernández
+
+## Universidad Politécnica de Madrid (UPM) - Technical UNiversity of Madrid
+## Master Universitario en Sistemas Espaciales (MUSE) - Master Degree in Space Systems
+## Instituto Ignacio Da Riva (IDR)
+#### Developed by: David Huergo 
+#### Supervised by: Juan Antonio Hernández
