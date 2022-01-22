@@ -25,7 +25,7 @@ Fortran compiled code for optimization improvement and computational time reduct
 
 NASA's and UCR's database to evaluate the software performances.
 
-![Original Time Series](Time_series_MVD.png)
+![Original Time Series](Time_series_MVD.png#gh-dark-mode-only)
 
 ![Decomposed Time Series](MVD_decomposition.png)
 
