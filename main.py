@@ -19,6 +19,11 @@ except:
     sys.path.insert(1, '/'.join(os.path.dirname(os.path.abspath(__file__)).split('\\'))+'/fortran_interface')
     import fortran_ts
 
+try:
+    sys.path.insert(1, '/'.join(os.path.dirname(os.path.abspath(__file__)).split('/'))+'/sources')
+except:
+    sys.path.insert(1, '/'.join(os.path.dirname(os.path.abspath(__file__)).split('\\'))+'/sources')
+
 import test_function
 import ts_analysis
 import ts_anomalies
@@ -360,7 +365,7 @@ def user_examples(N):
 
         print('Example 2: Time series period estimation.')
 
-        [t, X] = test_function.read_UCR("156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
+        [t, X] = test_function.read_UCR("UCR_Anomaly_FullData/156_UCR_Anomaly_TkeepFifthMARS_3500_5988_6085.txt")
         plot(t,X)
 
         #Period estimation 

@@ -10,10 +10,10 @@ from matplotlib import pyplot as plt
 from tensorflow.keras.models import load_model
 
 try:
-    sys.path.insert(1, '/'.join(os.path.dirname(os.path.abspath(__file__)).split('/'))+'/fortran_interface')
+    sys.path.insert(1, '/'.join(os.path.dirname(os.path.abspath(__file__)).split('/'))+'../fortran_interface')
     import fortran_ts
 except:
-    sys.path.insert(1, '/'.join(os.path.dirname(os.path.abspath(__file__)).split('\\'))+'/fortran_interface')
+    sys.path.insert(1, '/'.join(os.path.dirname(os.path.abspath(__file__)).split('\\'))+'../fortran_interface')
     import fortran_ts
 
 import CNN_test
