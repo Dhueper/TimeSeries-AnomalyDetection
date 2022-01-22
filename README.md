@@ -28,16 +28,16 @@ NASA's and UCR's database to evaluate the software performances.
 ### Mean Value Decomposition (MVD)
 Robust method for decomposing time series.
 
-![Original Time Series](Time_series_MVD.png)
+![Original Time Series](Figures/Time_series_MVD.png)
 
-![Decomposed Time Series](MVD_decomposition.png)
+![Decomposed Time Series](Figures/MVD_decomposition.png)
 
 ### Anomaly detection
 Precise anomaly detection through time series decomposition (STL + MVD), spectral residual transformation and ADTK (Anomaly Detection ToolKit).
 
-![Anomalous Time Series](Time_series_anomaly.png)
+![Anomalous Time Series](Figures/Time_series_anomaly.png)
 
-![Detected Anomaly](Anomay_detection.png)
+![Detected Anomaly](Figures/Anomay_detection.png)
 
 
 ## Universidad Politécnica de Madrid (UPM) - Technical UNiversity of Madrid
