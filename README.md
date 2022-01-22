@@ -25,6 +25,8 @@ Fortran compiled code for optimization improvement and computational time reduct
 
 NASA's and UCR's database to evaluate the software performances.
 
+![This is an image](Time_series_MVD.png)
+
 
 ## Universidad Politécnica de Madrid (UPM) - Technical UNiversity of Madrid
 ## Master Universitario en Sistemas Espaciales (MUSE) - Master Degree in Space Systems
