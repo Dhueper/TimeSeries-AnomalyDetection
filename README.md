@@ -28,7 +28,7 @@ NASA's and UCR's database to evaluate the software performances.
 ### Mean Value Decomposition (MVD)
 Robust method for decomposing time series.
 
-![Original Time Series](Figues/Time_series_MVD.png)
+![Original Time Series](Figures/Time_series_MVD.png)
 
 ![Decomposed Time Series](Figures/MVD_decomposition.png)
 
