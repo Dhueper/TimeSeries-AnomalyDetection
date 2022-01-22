@@ -745,35 +745,28 @@ def user_examples(N):
 
 
 if __name__ == "__main__":
-    """ Select an introductory pre-defined example:
-    1) Noise reduction.
-    2) Period estimation.
-    3) Time series decomposition: STL.
-    4) Time series decomposition: MVD.
-    5) Spectral residual transformation.
-    6) Anomaly detection with ADTK.
-    7) Time series decomposition and anomaly detection with ADTK.
-    8) NASA's anomaly database evaluation (highly time consuming).
-    9) UCR's anomaly database evaluation (highly time consuming).
-    10) Comparison between computational time for python and fortran filter.
-    """
 
-    print(""" Select an introductory pre-defined example:\n 
-    1) Noise reduction.\n 
-    2) Period estimation.\n 
-    3) Time series decomposition: STL.\n 
-    4) Time series decomposition: MVD.\n 
-    5) Spectral residual transformation.\n 
-    6) Anomaly detection with ADTK.\n 
-    7) Time series decomposition and anomaly detection with ADTK.\n 
-    8) NASA's anomaly database evaluation (highly time consuming).\n 
-    9) UCR's anomaly database evaluation (highly time consuming).\n 
-    10) Comparison between computational time for python and fortran filter.\n 
-    """)
+    run = True
+    while run:
+        print(""" Select an introductory pre-defined example:\n 
+        0) Exit\n 
+        1) Noise reduction.\n 
+        2) Period estimation.\n 
+        3) Time series decomposition: STL.\n 
+        4) Time series decomposition: MVD.\n 
+        5) Anomaly detection with spectral residual transformation.\n 
+        6) Anomaly detection with ADTK.\n 
+        7) Time series decomposition (STL + MVD), spectral residual transformation\n \t and anomaly detection with ADTK.\n 
+        8) NASA's anomaly database evaluation (highly time consuming).\n 
+        9) UCR's anomaly database evaluation (highly time consuming).\n 
+        10) Comparison between computational time for python and fortran filter.\n 
+        """)
 
-    option = input("Select an example from 1 to 10: ")
+        option = input("Select an example from 0 to 10: ")
+        if option == '0':
+            run = False
 
-    user_examples(int(option))
+        user_examples(int(option))
 
 
 
