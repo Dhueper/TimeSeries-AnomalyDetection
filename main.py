@@ -261,6 +261,8 @@ def main(filename, plot_figures, begin, end, data):
 
     if plot_figures:
         plt.legend(legend)
+        plt.xlabel('t')
+        plt.ylabel('X(t)', rotation=0)
         plt.show()
 
     val = sum(value) / len(begin)
@@ -765,8 +767,8 @@ if __name__ == "__main__":
         option = input("Select an example from 0 to 10: ")
         if option == '0':
             run = False
-
-        user_examples(int(option))
+        else:
+            user_examples(int(option))
 
 
 
