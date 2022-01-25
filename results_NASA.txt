@@ -84,5 +84,5 @@ NASA telemetry data:
 81) D-2.npy, 3.0, ['trend', 'seasonal', 'sr', 'ts', 'resid']
 
 Result: 215.66666666666666/243
-Major: 65, Significant: 12, Minor: 0
+Major: 65, Significant: 12, Minor: 2
 ts: 66    sr: 77    trend: 32    seasonal: 51    resid: 75   
